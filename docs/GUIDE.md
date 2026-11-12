@@ -93,7 +93,7 @@ Sous Linux : `sudo apt install python3-tk zenity`, puis
 
 Au premier lancement, un assistant en trois étapes prépare l'outil pour vous.
 
-1. **Votre prénom et la langue** (français ou anglais).
+1. **Votre prénom et la langue** (français, anglais ou espagnol).
 2. **Votre métier** : Freelance, Assistant(e) virtuel(le), Assistant(e) de
    direction, Développeur, ou « Je choisis moi-même ». Le métier sert
    seulement à cocher d'office les applications utiles.
@@ -163,7 +163,7 @@ relancez-la avec le raccourci « Mes outils » du Bureau.
   un contact, ouvrir un document, lancer un de vos outils ou changer de thème,
   puis Entrée.
 - **Thème** : clair, sombre ou automatique (comme Windows).
-- **Langue** : français ou anglais, dans les Réglages.
+- **Langue** : français, anglais ou espagnol, dans les Réglages.
 
 ![Palette de commandes (Ctrl + K)](images/fr/palette.webp)
 
@@ -621,7 +621,7 @@ Vos commandes et bouts de code favoris.
 
 ![Réglages](images/fr/reglages.webp)
 
-- Prénom (pour la salutation), **langue** (français, anglais), **thème**.
+- Prénom (pour la salutation), **langue** (français, anglais, espagnol), **thème**.
 - **Applications** : votre métier et le bouton « Choisir mes applications »,
   qui ouvre la page Applications.
 - **Dossiers de projets** : là où Projets et GitHub cherchent vos projets.

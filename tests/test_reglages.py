@@ -62,6 +62,13 @@ class TestSocle(ServeurTest):
         self.assertEqual(contenu["onglets_masques"], ["ssh"], "Accueil et Réglages ne se masquent pas")
         self.assertEqual(contenu["outils"], [], "le reste d'outils.json est conservé")
 
+    def test_langue_espagnole(self):
+        with ConfigTemporaire() as cfg:
+            statut, r = self.post("/api/reglages/enregistrer", {"langue": "es"})
+            self.assertEqual((statut, r["langue"]), (200, "es"))
+            self.assertEqual(config.langue(), "es")
+            self.assertEqual(cfg.lire()["langue"], "es")
+
     def test_valeurs_refusees(self):
         with ConfigTemporaire() as cfg:
             statut, r = self.post("/api/reglages/enregistrer", {"langue": "de"})

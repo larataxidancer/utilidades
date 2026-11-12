@@ -12,8 +12,9 @@ import unittest
 
 WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outil", "web")
 PAGE = os.path.join(os.path.dirname(WEB), "hub.html")
-FICHIERS = ["i18n.js", "mails.js", "notes.js", "agenda.js", "motsdepasse.js", "ssh.js"]
+FICHIERS = ["i18n.js", "mails.js", "notes.js", "agenda.js", "motsdepasse.js", "ssh.js", "reglages.js"]
 BLOC = re.compile(r"I18N\.ajouter\(\{(.*?)\}\);", re.S)
+BLOC_ES = re.compile(r"I18N\.ajouterEspanol\(\{(.*?)\}\);", re.S)
 PAIRE = re.compile(r'"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"')
 
 
@@ -22,6 +23,13 @@ def paires(nom):
         texte = f.read()
     for bloc in BLOC.findall(texte):
         # Commentaires « // … » en fin de ligne retirés.
+        bloc = re.sub(r"^\s*//.*$", "", bloc, flags=re.M)
+        yield from PAIRE.findall(bloc)
+
+def paires_es(nom):
+    with open(os.path.join(WEB, nom), encoding="utf-8") as f:
+        texte = f.read()
+    for bloc in BLOC_ES.findall(texte):
         bloc = re.sub(r"^\s*//.*$", "", bloc, flags=re.M)
         yield from PAIRE.findall(bloc)
 
@@ -44,6 +52,27 @@ class TestDictionnaires(unittest.TestCase):
             for cle, valeur in paires(nom):
                 self.assertEqual(set(re.findall(r"\{(\w+)\}", cle)), set(re.findall(r"\{(\w+)\}", valeur)),
                                  f"{nom} : variables différentes entre « {cle} » et « {valeur} »")
+
+    def test_traductions_espagnoles_et_variables(self):
+        for nom in ("i18n.js", "reglages.js"):
+            traductions = list(paires_es(nom))
+            self.assertTrue(traductions, f"{nom} : aucun dictionnaire espagnol trouvé")
+            for cle, valeur in traductions:
+                self.assertEqual(set(re.findall(r"\{(\w+)\}", cle)), set(re.findall(r"\{(\w+)\}", valeur)),
+                                 f"{nom} : variables différentes entre « {cle} » et « {valeur} »")
+
+    @unittest.skipUnless(shutil.which("node"), "node absent")
+    def test_langue_espagnole_en_javascript(self):
+        script = (
+            "global.window=global; global.document={documentElement:{}}; "
+            "require(process.argv[1]); I18N.langue='es'; "
+            "if (I18N.langue !== 'es' || I18N.locale() !== 'es-ES' || "
+            "I18N.t('Accueil') !== 'Inicio' || I18N.t('Bonjour') !== 'Buenos días') process.exit(1);"
+        )
+        r = subprocess.run(["node", "-e", script, os.path.join(WEB, "i18n.js")],
+                           capture_output=True, text=True, timeout=30,
+                           creationflags=0x08000000 if sys.platform == "win32" else 0)
+        self.assertEqual(r.returncode, 0, r.stderr)
 
     @unittest.skipUnless(shutil.which("node"), "node absent")
     def test_syntaxe_js(self):

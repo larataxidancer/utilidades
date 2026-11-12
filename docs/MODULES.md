@@ -132,12 +132,15 @@ La section `<section id="vue-<nom>">` est créée pour lui.
   `.etiquette`, `.point` (`.marche`, `.demarrage`, `.occupe`).
   Variables : `--carte`, `--encre`, `--doux`, `--ligne`, `--violet`,
   `--violet-clair`, `--corail`, `--menthe`, `--ambre`, `--rouge`, `--ombre`.
-- **Langue** : le texte est écrit en français. `el()`, `toast()` et
+- **Langue** : le texte source est écrit en français. `el()`, `toast()` et
   `confirmer()` traduisent seuls les textes simples, `title` et `placeholder`
-  s'ils figurent dans `I18N.ajouter({...})`. Texte avec une valeur :
-  `t("Port {port} libéré", { port })`, et la clé `"Port {port} libéré"` dans le
-  dictionnaire. Messages d'erreur du serveur : les ajouter aussi au
-  dictionnaire (`I18N.motifs([[/^…$/, "…"]])` pour les messages variables).
+  s'ils figurent dans `I18N.ajouter({...})`. Pour l'espagnol, ajouter aussi les
+  textes traduits avec `I18N.ajouterEspanol({...})`. En espagnol, un texte sans
+  traduction dédiée utilise sa traduction anglaise si elle existe. Texte avec
+  une valeur : `t("Port {port} libéré", { port })`, et la clé `"Port {port}
+  libéré"` dans le dictionnaire. Messages d'erreur du serveur : les ajouter
+  aussi au dictionnaire (`I18N.motifs([[/^…$/, "…"]])` pour les messages
+  variables).
 - **Listes** : en lignes compactes, classes communes de hub.html : `.lignes` >
   `.ligne` (`.ligne-ic`, `.ligne-corps` > `.ligne-titre` + `.ligne-meta`,
   `.ligne-cote`, `.ligne-actions` visibles au survol), `.ligne-detail` pour un

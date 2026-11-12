@@ -81,6 +81,32 @@ ANGLAIS = {
     "Afficher la bulle": "Show the bubble", "Quitter": "Quit",
 }
 
+ESPAGNOL = {
+    "Ouvrir le tableau de bord": "Abrir el panel", "Note rapide": "Nota rápida", "Mails": "Correo",
+    "non lus": "sin leer", "Agenda": "Agenda", "Notes": "Notas", "Mots de passe": "Contraseñas",
+    "Projets": "Proyectos", "GitHub": "GitHub", "en échec": "con errores", "Serveurs locaux": "Servidores locales",
+    "Serveurs Odoo": "Servidores Odoo", "Ouvrir": "Abrir", "Arrêter": "Detener", "Démarrer": "Iniciar",
+    "Extraits": "Fragmentos", "Presse-papiers": "Portapapeles", "(vide)": "(vacío)",
+    "Arrêter le chrono": "Detener el temporizador", "Démarrer un chrono…": "Iniciar un temporizador…",
+    "Masquer 15 minutes": "Ocultar durante 15 minutos", "Quitter la bulle": "Salir de la burbuja",
+    "Rappel": "Recordatorio", "Plus tard": "Más tarde", "OK": "OK", "Pomodoro": "Pomodoro",
+    "Quitter la bulle ?\n\nLes serveurs et les outils déjà lancés continuent de tourner.":
+        "¿Salir de la burbuja?\n\nLos servidores y las herramientas que ya se iniciaron seguirán funcionando.",
+    "Arrêter {nom} ?": "¿Detener {nom}?", "Base de référence": "Base de referencia",
+    "« {base} » ne doit pas être modifiée.\n\nDémarrer quand même son serveur ?":
+        "No se debe modificar «{base}».\n\n¿Iniciar su servidor de todas formas?",
+    "Arrêter le serveur {base} (port {port}) ?": "¿Detener el servidor {base} (puerto {port})?",
+    "Note rapide · 1re ligne = titre · Ctrl + Entrée pour enregistrer":
+        "Nota rápida · 1.ª línea = título · Ctrl + Intro para guardar",
+    "1re ligne = titre · Ctrl + Entrée pour enregistrer": "1.ª línea = título · Ctrl + Intro para guardar",
+    "Annuler": "Cancelar", "Enregistrer": "Guardar", "Copié : {texte}": "Copiado: {texte}",
+    "Tâche": "Tarea", "Relance": "Seguimiento", "Facture": "Factura", "Budget": "Presupuesto", "Document": "Documento",
+    "Échéance": "Vencimiento", "Réunion": "Reunión", "Tâches": "Tareas", "Contacts": "Contactos",
+    "Devis et factures": "Presupuestos y facturas", "Dépenses": "Gastos",
+    "Ouvrir Mes outils": "Abrir Mes outils", "Masquer la bulle": "Ocultar la burbuja",
+    "Afficher la bulle": "Mostrar la burbuja", "Quitter": "Salir",
+}
+
 
 # Applications qui peuvent envoyer des rappels par la bulle (alertes_dues),
 # avec le titre de la carte de rappel.
@@ -92,10 +118,13 @@ APPS_ALERTES = {"temps": "Pomodoro", "taches": "Tâche", "contacts": "Relance", 
 def tr(texte, **valeurs):
     """Le texte dans la langue des Réglages."""
     try:
-        anglais = hub.config.langue() == "en"
+        langue = hub.config.langue()
     except Exception:
-        anglais = False
-    texte = ANGLAIS.get(texte, texte) if anglais else texte
+        langue = "fr"
+    if langue == "en":
+        texte = ANGLAIS.get(texte, texte)
+    elif langue == "es":
+        texte = ESPAGNOL.get(texte, texte)
     return texte.format(**valeurs) if valeurs else texte
 
 

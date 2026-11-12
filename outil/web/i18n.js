@@ -1,8 +1,9 @@
 "use strict";
-/* Traduction de l'interface (français → anglais).
+/* Traduction de l'interface (français → anglais ou espagnol).
 
    Le texte source est écrit en français. Chaque onglet ajoute ses traductions :
      I18N.ajouter({ "Texte en français": "English text", ... });
+     I18N.ajouterEspanol({ "Texte en français": "Texto en español", ... });
      I18N.motifs([[/^(\d+) dépôts?$/, "$1 repositories"], ...]);   // textes variables
    Puis :
      t("Bonjour {nom}", { nom })   → traduit, puis remplace {nom}
@@ -10,6 +11,7 @@
    toast() et confirmer() aussi. La langue vient des Réglages (outils.json). */
 window.I18N = (() => {
   const dico = {};
+  const dicoEs = {};
   const listeMotifs = [];
   let langue = "fr";
 
@@ -26,14 +28,23 @@ window.I18N = (() => {
     return undefined;
   }
 
+  function buscarEspanol(texte) {
+    return dicoEs[texte] !== undefined ? dicoEs[texte] : chercher(texte);
+  }
+
+  function buscarIngles(texte) {
+    return chercher(texte);
+  }
+
   function traduire(texte) {
     if (langue === "fr" || typeof texte !== "string" || !texte.trim()) return texte;
-    const direct = chercher(texte);
+    const buscar = langue === "es" ? buscarEspanol : buscarIngles;
+    const direct = buscar(texte);
     if (direct !== undefined) return direct;
     // « 😕 Message » : on traduit la partie après l'emoji.
     const m = texte.match(PREFIXE);
     if (m && m[0].length < texte.length) {
-      const reste = chercher(texte.slice(m[0].length));
+      const reste = buscar(texte.slice(m[0].length));
       if (reste !== undefined) return m[0] + reste;
     }
     // « Titre : détail » : chaque moitié séparément (messages d'erreur).
@@ -61,12 +72,19 @@ window.I18N = (() => {
         if (k2 && k2 !== k && dico[k2] === undefined) dico[k2] = v2;
       }
     },
+    ajouterEspanol(d) {
+      Object.assign(dicoEs, d);
+      for (const [k, v] of Object.entries(d)) {
+        const k2 = sansPicto(k), v2 = sansPicto(v);
+        if (k2 && k2 !== k && dicoEs[k2] === undefined) dicoEs[k2] = v2;
+      }
+    },
     motifs(liste) { listeMotifs.push(...liste); },
     t, traduire,
     get langue() { return langue; },
-    set langue(v) { langue = v === "en" ? "en" : "fr"; document.documentElement.lang = langue; },
+    set langue(v) { langue = ["en", "es"].includes(v) ? v : "fr"; document.documentElement.lang = langue; },
     /** Locale des dates et des nombres. */
-    locale() { return langue === "en" ? "en-GB" : "fr-FR"; },
+    locale() { return langue === "en" ? "en-GB" : langue === "es" ? "es-ES" : "fr-FR"; },
     /** Traduit les textes déjà écrits dans la page (hub.html). */
     traduirePage(racine = document.body) {
       if (langue === "fr") return;
@@ -241,3 +259,106 @@ I18N.ajouter({
   "Erreur inattendue": "Unexpected error",
 });
 I18N.motifs([[/^Erreur (\d+)$/, "Error $1"]]);
+
+I18N.ajouterEspanol({
+  "Votre boîte mail (Gmail, Yahoo, OVH…) : lire, répondre, écrire.": "Tu correo (Gmail, Yahoo, OVH…): leer, responder y escribir.",
+  "Notes en cartes ou listes à cocher, épinglées, avec rappel.": "Notas en tarjetas o listas de tareas, fijadas y con recordatorios.",
+  "Rendez-vous de la semaine et du mois, rappels par la bulle.": "Citas de la semana y del mes, con recordatorios en la burbuja.",
+  "Coffre chiffré pour vos mots de passe et codes.": "Bóveda cifrada para tus contraseñas y códigos.",
+  "Chrono par projet ou client, Pomodoro, export pour la facturation.": "Temporizador por proyecto o cliente, Pomodoro y exportación para facturar.",
+  "Les derniers textes copiés, pour les retrouver en un clic.": "Los últimos textos copiados, para encontrarlos con un clic.",
+  "Vos commandes et bouts de code favoris.": "Tus comandos y fragmentos de código favoritos.",
+  "JWT, JSON, Base64, UUID, expressions régulières…": "JWT, JSON, Base64, UUID, expresiones regulares…",
+  "Vos serveurs de dev et vos serveurs Odoo : démarrer, arrêter, journal.": "Tus servidores de desarrollo y Odoo: iniciar, detener y consultar el registro.",
+  "Vos projets : VS Code, terminal, serveurs de dev, état Git.": "Tus proyectos: VS Code, terminal, servidores de desarrollo y estado de Git.",
+  "Dépôts, pull requests, issues, état des tests GitHub.": "Repositorios, pull requests, incidencias y estado de las pruebas de GitHub.",
+  "Quel programme occupe tel port, et l'arrêter.": "Qué programa está usando un puerto y cómo detenerlo.",
+  "Conteneurs Docker : démarrer, arrêter, journaux.": "Contenedores Docker: iniciar, detener y consultar los registros.",
+  "Tester une API : requêtes, réponses, historique.": "Probar una API: solicitudes, respuestas e historial.",
+  "Une clé par serveur, posée en un clic.": "Una clave por servidor, instalada con un clic.",
+  "Réunions et trajets": "Reuniones y desplazamientos",
+  "{n} mails non lus": "{n} correos sin leer",
+  "Coucou !": "¡Hola!",
+  "Bonjour": "Buenos días",
+  "Bonne nuit": "Buenas noches",
+  "Bon après-midi": "Buenas tardes",
+  "Bonsoir": "Buenas noches",
+  "Arrêter le tableau de bord": "Cerrar el panel",
+  "Que fait-on aujourd'hui ?": "¿Qué hacemos hoy?",
+  "Tout est prêt, à vous de jouer ✨": "Todo está listo, ¡adelante! ✨",
+  "Une facture à envoyer ? 🧾": "¿Hay alguna factura que enviar? 🧾",
+  "Les serveurs vous attendent 🐘": "Los servidores te esperan 🐘",
+  "Un café, et c'est parti ☕": "Un café y empezamos ☕",
+  "Belle journée de code ! 🚀": "¡Que tengas un gran día de código! 🚀",
+  "Accueil": "Inicio",
+  "Mails": "Correo",
+  "Notes": "Notas",
+  "Agenda": "Agenda",
+  "Mots de passe": "Contraseñas",
+  "Au quotidien": "Día a día",
+  "Développement": "Desarrollo",
+  "Petits outils": "Herramientas",
+  "Mes outils": "Mis herramientas",
+  "Mes outils · tout tourne sur ce PC ·": "Mes outils · todo funciona en este equipo ·",
+  "Ajouter, modifier ou retirer des outils": "Añadir, modificar o quitar herramientas",
+  "✏️ Modifier": "✏️ Modificar",
+  "✅ Terminé": "✅ Listo",
+  "Aujourd'hui": "Hoy",
+  "Demain": "Mañana",
+  "Jour": "Día",
+  "Rendez-vous": "Cita",
+  "Rien de prévu, profitez-en 🌴": "No hay nada previsto, ¡disfrútalo! 🌴",
+  "Notes épinglées": "Notas fijadas",
+  "Épinglez une note pour la retrouver ici": "Fija una nota para encontrarla aquí",
+  "mail non lu": "correo sin leer",
+  "mails non lus": "correos sin leer",
+  "En marche": "En ejecución",
+  "Prêt à lancer": "Listo para iniciar",
+  "Introuvable": "No encontrado",
+  "Introuvable.": "No encontrado.",
+  "Sans nom": "Sin título",
+  "Modifier": "Modificar",
+  "Retirer": "Quitar",
+  "Ajouter un outil": "Añadir una herramienta",
+  "c'est parti !": "¡adelante!",
+  "Retirer « {nom} » ?": "¿Quitar « {nom} »?",
+  "Tuile retirée": "Acceso quitado",
+  "Dossier": "Carpeta",
+  "Fichier / programme": "Archivo / programa",
+  "Page web": "Página web",
+  "Appli locale": "Aplicación local",
+  "Adresse": "Dirección",
+  "Chemin": "Ruta",
+  "Port de l'appli": "Puerto de la aplicación",
+  "ex. 8765": "p. ej., 8765",
+  "Commande de démarrage (un élément par ligne)": "Comando de inicio (un elemento por línea)",
+  "Nom": "Nombre",
+  "Emoji": "Emoji",
+  "Couleur": "Color",
+  "Ce qu'il ouvre": "Qué abre",
+  "Démarrer": "Iniciar",
+  "Arrêter": "Detener",
+  "Ouvrir dans le navigateur": "Abrir en el navegador",
+  "Journal": "Registro",
+  "Base de référence": "Base de referencia",
+  "Serveurs Odoo": "Servidores Odoo",
+  "🧩 Gadget complet": "🧩 Panel completo",
+  "Lecture des serveurs…": "Leyendo los servidores…",
+  "Impossible de lire les serveurs": "No se pudieron leer los servidores",
+  "Démarrage…": "Iniciando…",
+  "Arrêté": "Detenido",
+  "Port occupé (autre programme)": "Puerto ocupado (otro programa)",
+  "Fermer le tableau de bord ?": "¿Cerrar el panel?",
+  "Fermer": "Cerrar",
+  "À bientôt !": "¡Hasta pronto!",
+  "Vous pouvez fermer cette fenêtre.": "Puedes cerrar esta ventana.",
+  "Annuler": "Cancelar",
+  "Oui": "Sí",
+  "Enregistrer": "Guardar",
+  "Ajouter": "Añadir",
+  "Choisir un dossier": "Elegir una carpeta",
+  "📋 Copié": "📋 Copiado",
+  "Copie impossible": "No se pudo copiar",
+  "Accès refusé.": "Acceso denegado.",
+  "Erreur inattendue": "Error inesperado",
+});

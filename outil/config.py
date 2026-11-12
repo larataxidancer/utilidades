@@ -50,7 +50,7 @@ FICHIER_EXEMPLE = os.path.join(ICI if GELE else RACINE, "outils.exemple.json")
 DONNEES = os.path.join(BASE, "donnees")
 FICHIER_BULLE = os.path.join(BASE, "bulle.json")
 JOURNAL = os.path.join(BASE if GELE else ICI, "hub.log")
-LANGUES = ("fr", "en")
+LANGUES = ("fr", "en", "es")
 THEMES = ("auto", "clair", "sombre")
 # Métiers proposés au premier lancement (ils pré-cochent des applications).
 PROFILS = ("freelance", "assistant_virtuel", "assistant_direction", "developpeur", "personnalise")

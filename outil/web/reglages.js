@@ -84,6 +84,73 @@
     "Affichage inconnu.": "Unknown display mode.",
   });
 
+  I18N.ajouterEspanol({
+    "Réglages": "Ajustes",
+    "Profil": "Perfil",
+    "Prénom (pour la salutation)": "Nombre (para el saludo)",
+    "ex. Marie": "p. ej., María",
+    "Langue": "Idioma",
+    "Thème": "Tema",
+    "🌗 Automatique": "🌗 Automático",
+    "☀️ Clair": "☀️ Claro",
+    "🌙 Sombre": "🌙 Oscuro",
+    "Onglets affichés": "Pestañas visibles",
+    "Choisissez les applications du menu, comme dans un ERP : les autres disparaissent, leurs données restent.":
+      "Elige las aplicaciones del menú, como en un ERP: las demás se ocultan, pero sus datos se conservan.",
+    "Choisir mes applications": "Elegir mis aplicaciones",
+    "Décochez les onglets dont vous ne vous servez pas : ils disparaissent du menu (rien n'est effacé).":
+      "Desmarca las pestañas que no uses: desaparecerán del menú (no se borra nada).",
+    "Dossiers de projets": "Carpetas de proyectos",
+    "Les onglets GitHub, Projets et État Git y cherchent vos projets (le dossier et ses sous-dossiers directs).":
+      "Las pestañas GitHub, Proyectos y Estado de Git buscan tus proyectos aquí (en la carpeta y sus subcarpetas directas).",
+    "＋ Ajouter un dossier": "＋ Añadir una carpeta",
+    "Aucun dossier pour l'instant.": "Aún no hay carpetas.",
+    "Retirer": "Quitar",
+    "Lancer la bulle au démarrage de Windows": "Iniciar la burbuja al arrancar Windows",
+    "Raccourci « Mes outils » sur le Bureau": "Acceso directo a «Mes outils» en el escritorio",
+    "Boîte mail": "Correo",
+    "La boîte mail se connecte dans l'onglet Mails.": "El correo se configura en la pestaña Correo.",
+    "Ouvrir l'onglet Mails": "Abrir la pestaña Correo",
+    "À propos": "Acerca de",
+    "Version {v}": "Versión {v}",
+    "🌐 Code source sur GitHub": "🌐 Código fuente en GitHub",
+    "🔄 Rechercher une mise à jour": "🔄 Buscar actualizaciones",
+    "Recherche…": "Buscando…",
+    "✅ Mis à jour : la page va se recharger": "✅ Actualizado: la página se volverá a cargar",
+    "Déjà à jour 👍": "Ya está actualizado 👍",
+    "Enregistré": "Guardado",
+    "Choisir un dossier de projets": "Elegir una carpeta de proyectos",
+    "Version {v} disponible": "Versión {v} disponible",
+    "Installer maintenant ? Mes outils se ferme quelques secondes puis redémarre tout seul. Vos réglages et vos données sont gardés.":
+      "¿Instalar ahora? Mes outils se cerrará unos segundos y se reiniciará automáticamente. Se conservarán tus ajustes y datos.",
+    "Installer": "Instalar",
+    "Téléchargement de la version {v}…": "Descargando la versión {v}…",
+    "Mise à jour de Mes outils": "Actualizando Mes outils",
+    "Installation en cours : Mes outils redémarre tout seul, cette page se rechargera.":
+      "Instalación en curso: Mes outils se reiniciará automáticamente y esta página se volverá a cargar.",
+    "✅ Version {v} installée": "✅ Versión {v} instalada",
+    "La mise à jour prend du temps : relancez Mes outils depuis son raccourci.":
+      "La actualización está tardando: vuelve a iniciar Mes outils desde su acceso directo.",
+    "Téléchargement de la mise à jour impossible (Internet ?).": "No se pudo descargar la actualización (¿hay conexión a Internet?).",
+    "Installateur introuvable dans la dernière version publiée.": "No se encontró el instalador en la última versión publicada.",
+    "Le fichier téléchargé n'est pas un installateur valide.": "El archivo descargado no es un instalador válido.",
+    "Télécharger": "Descargar",
+    "Aucune version publiée pour l'instant.": "Todavía no se ha publicado ninguna versión.",
+    "Pas de connexion à GitHub (Internet ?).": "No hay conexión con GitHub (¿hay conexión a Internet?).",
+    "Linux": "Linux",
+    "Lancer Mes outils à l'ouverture de session": "Iniciar Mes outils al iniciar sesión",
+    "Mes outils dans le menu des applications": "Mes outils en el menú de aplicaciones",
+    "Affichage": "Visualización",
+    "Bulle et icône": "Burbuja e icono",
+    "Bulle seule": "Solo burbuja",
+    "Icône seule": "Solo icono",
+    "L'icône s'affiche en haut à droite de l'écran ; son menu reprend celui de la bulle.":
+      "El icono aparece en la parte superior derecha de la pantalla; su menú es igual al de la burbuja.",
+    "L'icône n'est pas disponible sur ce bureau : la bulle reste affichée.":
+      "El icono no está disponible en este escritorio: la burbuja seguirá visible.",
+    "Affichage inconnu.": "Modo de visualización desconocido.",
+  });
+
   const style = document.createElement("style");
   style.textContent = `
     .reglages { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; align-items: start; }
@@ -129,7 +196,7 @@
     let minuterie;
     prenom.addEventListener("input", () => { clearTimeout(minuterie); minuterie = setTimeout(() => enregistrer({ prenom: prenom.value }), 700); });
 
-    const langues = el("div", { class: "langues-reg" }, [["fr", "Français"], ["en", "English"]].map(([code, nom]) =>
+    const langues = el("div", { class: "langues-reg" }, [["fr", "Français"], ["en", "English"], ["es", "Español"]].map(([code, nom]) =>
       el("button", { class: "btn" + (i.langue === code ? " actif" : ""), onclick: () => { if (code !== i.langue) enregistrer({ langue: code }, true); } }, nom)));
 
     const themes = el("div", { class: "langues-reg" }, [["auto", "🌗 Automatique"], ["clair", "☀️ Clair"], ["sombre", "🌙 Sombre"]].map(([code, nom]) =>

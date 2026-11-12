@@ -89,7 +89,7 @@ On Linux: `sudo apt install python3-tk zenity`, then
 
 On first launch, a three-step assistant sets the tool up for you.
 
-1. **Your first name and the language** (French or English).
+1. **Your first name and the language** (French, English or Spanish).
 2. **Your role**: Freelancer, Virtual assistant, Executive assistant,
    Developer, or "I'll choose myself". The role only pre-ticks the useful
    apps.
@@ -157,7 +157,7 @@ nothing: the bubble stays. If you quit the bubble, start it again with the
   letters to go to an app, create a task, an invoice or a contact, open a
   document, start one of your tools or change the theme, then press Enter.
 - **Theme**: light, dark or automatic (follows Windows).
-- **Language**: French or English, in Settings.
+- **Language**: French, English or Spanish, in Settings.
 
 ![Command palette (Ctrl + K)](images/en/palette.webp)
 
@@ -595,7 +595,7 @@ Your favourite commands and code snippets.
 
 ![Settings](images/en/reglages.webp)
 
-- First name (for the greeting), **language** (French, English), **theme**.
+- First name (for the greeting), **language** (French, English, Spanish), **theme**.
 - **Apps**: your role and the "Choose my apps" button, which opens the Apps
   page.
 - **Project folders**: where Projects and GitHub look for your projects.
