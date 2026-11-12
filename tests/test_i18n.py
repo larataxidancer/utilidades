@@ -12,7 +12,8 @@ import unittest
 
 WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outil", "web")
 PAGE = os.path.join(os.path.dirname(WEB), "hub.html")
-FICHIERS = ["i18n.js", "mails.js", "notes.js", "agenda.js", "motsdepasse.js", "ssh.js", "reglages.js"]
+FICHIERS = ["i18n.js", "mails.js", "notes.js", "agenda.js", "motsdepasse.js", "ssh.js", "reglages.js",
+            "notes_rapides.js", "procedures.js"]
 BLOC = re.compile(r"I18N\.ajouter\(\{(.*?)\}\);", re.S)
 BLOC_ES = re.compile(r"I18N\.ajouterEspanol\(\{(.*?)\}\);", re.S)
 PAIRE = re.compile(r'"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"')
