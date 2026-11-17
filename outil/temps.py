@@ -52,11 +52,34 @@ _ANGLAIS = {
     "Date": "Date", "Début": "Start", "Fin": "End", "Projet": "Project", "Note": "Note",
     "Minutes": "Minutes", "Heures": "Hours", "Total": "Total", "Total par projet": "Total per project",
 }
+_ESPANOL = {
+    "Pause ! ☕": "¡Pausa! ☕",
+    "Grande pause ! 🌿": "¡Pausa larga! 🌿",
+    "Au travail ! 💪": "¡A trabajar! 💪",
+    "{projet} : {n} min de travail terminées. Pause de {p} min.": "{projet}: completaste {n} min de trabajo. Descansa {p} min.",
+    "{projet} : {c} périodes de travail d'affilée. Pause de {p} min.": "{projet}: completaste {c} períodos de trabajo seguidos. Descansa {p} min.",
+    "{projet} : période de travail n° {numero} ({n} min).": "{projet}: período de trabajo n.º {numero} ({n} min).",
+    "Travail": "Trabajo", "Pause courte": "Pausa corta", "Pause longue": "Pausa larga",
+    "Date": "Fecha", "Début": "Inicio", "Fin": "Fin", "Projet": "Proyecto", "Note": "Nota",
+    "Minutes": "Minutos", "Heures": "Horas", "Total": "Total", "Total par projet": "Total por proyecto",
+    "{nom} invalide.": "{nom} no es válida.",
+    "Durée invalide.": "La duración no es válida.",
+    "Valeur hors limites ({mini} à {maxi}).": "El valor está fuera del rango ({mini} a {maxi}).",
+    "Indiquez un projet.": "Escribe un proyecto.",
+    "Un chrono tourne déjà sur « {projet} » : arrêtez-le d'abord.": "Ya hay un cronómetro en marcha para «{projet}»: detenlo primero.",
+    "Aucun chrono en cours.": "No hay ningún cronómetro en marcha.",
+    "La fin doit être après le début.": "La hora de fin debe ser posterior a la de inicio.",
+    "Une session ne peut pas dépasser 24 heures.": "Una sesión no puede durar más de 24 horas.",
+    "Session introuvable.": "No se encontró la sesión.",
+    "Date invalide.": "La fecha no es válida.",
+    "Période inconnue.": "Período desconocido.",
+}
 LIBELLES_PHASES = {"travail": "Travail", "pause_courte": "Pause courte", "pause_longue": "Pause longue"}
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if config.langue() == "en" else fr
+    langue = config.langue()
+    texte = _ANGLAIS.get(fr, fr) if langue == "en" else _ESPANOL.get(fr, fr) if langue == "es" else fr
     return texte.format(**valeurs) if valeurs else texte
 
 
@@ -70,7 +93,7 @@ def _date(texte, nom="Date"):
     try:
         return datetime.datetime.strptime(str(texte or "")[:16], FORMAT)
     except ValueError:
-        raise ValueError(f"{nom} invalide.") from None
+        raise ValueError(_texte("{nom} invalide.", nom=_texte(nom))) from None
 
 
 def _a_la_minute(d):
@@ -119,9 +142,9 @@ def enregistrer_reglages(valeurs):
             try:
                 n = int(valeurs[cle])
             except (TypeError, ValueError):
-                raise ValueError("Durée invalide.") from None
+                raise ValueError(_texte("Durée invalide.")) from None
             if not mini <= n <= maxi:
-                raise ValueError(f"Valeur hors limites ({mini} à {maxi}).")
+                raise ValueError(_texte("Valeur hors limites ({mini} à {maxi}).", mini=mini, maxi=maxi))
             propres[cle] = n
     if "pomodoro_par_defaut" in valeurs:
         propres["pomodoro_par_defaut"] = bool(valeurs["pomodoro_par_defaut"])
@@ -271,7 +294,7 @@ def _etat(d, a_l_heure):
 def _projet(valeur):
     projet = " ".join(str(valeur or "").split())[:MAX_PROJET]
     if not projet:
-        raise ValueError("Indiquez un projet.")
+        raise ValueError(_texte("Indiquez un projet."))
     return projet
 
 
@@ -283,7 +306,8 @@ def demarrer(projet, note="", pomodoro=False):
     with _verrou:
         d = _lire()
         if d.get("en_cours"):
-            raise ValueError(f"Un chrono tourne déjà sur « {d['en_cours']['projet']} » : arrêtez-le d'abord.")
+            raise ValueError(_texte("Un chrono tourne déjà sur « {projet} » : arrêtez-le d'abord.",
+                                    projet=d["en_cours"]["projet"]))
         a_l_heure = maintenant()
         d["en_cours"] = {"projet": _projet(projet), "note": _note(note), "debut": a_l_heure.strftime(FORMAT_S),
                          "pomodoro": _nouveau_pomodoro(a_l_heure) if pomodoro else None}
@@ -298,7 +322,7 @@ def arreter(note=None):
         d = _lire()
         en = d.get("en_cours")
         if not en:
-            raise ValueError("Aucun chrono en cours.")
+            raise ValueError(_texte("Aucun chrono en cours."))
         a_l_heure = maintenant()
         _avancer(d, a_l_heure)
         debut = datetime.datetime.strptime(en["debut"], FORMAT_S)
@@ -320,7 +344,7 @@ def modifier_en_cours(projet=None, note=None, pomodoro=None):
         d = _lire()
         en = d.get("en_cours")
         if not en:
-            raise ValueError("Aucun chrono en cours.")
+            raise ValueError(_texte("Aucun chrono en cours."))
         a_l_heure = maintenant()
         _avancer(d, a_l_heure)
         if projet is not None:
@@ -343,9 +367,9 @@ def _valider_session(s):
     debut = _date(s.get("debut"), "Début")
     fin = _date(s.get("fin"), "Fin")
     if fin <= debut:
-        raise ValueError("La fin doit être après le début.")
+        raise ValueError(_texte("La fin doit être après le début."))
     if fin - debut > MAX_SESSION:
-        raise ValueError("Une session ne peut pas dépasser 24 heures.")
+        raise ValueError(_texte("Une session ne peut pas dépasser 24 heures."))
     return {"projet": _projet(s.get("projet")), "note": _note(s.get("note")),
             "debut": debut.strftime(FORMAT), "fin": fin.strftime(FORMAT), "minutes": _minutes(debut, fin)}
 
@@ -367,7 +391,7 @@ def modifier_session(session):
         d = _lire()
         existante = next((s for s in d["sessions"] if s["id"] == (session or {}).get("id")), None)
         if existante is None:
-            raise ValueError("Session introuvable.")
+            raise ValueError(_texte("Session introuvable."))
         existante.update(propre)
         _ecrire(d)
         return dict(existante)
@@ -390,7 +414,7 @@ def bornes(periode, reference=None):
         try:
             jour = datetime.date.fromisoformat(jour[:10])
         except ValueError:
-            raise ValueError("Date invalide.") from None
+            raise ValueError(_texte("Date invalide.")) from None
     if periode == "jour":
         return jour, jour + datetime.timedelta(days=1)
     if periode == "semaine":
@@ -402,7 +426,7 @@ def bornes(periode, reference=None):
         return premier, suivant
     if periode == "tout":
         return None, None
-    raise ValueError("Période inconnue.")
+    raise ValueError(_texte("Période inconnue."))
 
 
 def sessions(periode="semaine", reference=None):

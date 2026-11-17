@@ -55,6 +55,37 @@ _ANGLAIS = {
     "Site web": "Website", "Étiquettes": "Tags", "Relance": "Follow-up",
     "Motif de relance": "Follow-up reason", "Dernier échange": "Last contact",
 }
+_ESPANOL = {
+    "Relancer {nom}": "Dar seguimiento a {nom}",
+    "Relance prévue le {date}.": "Seguimiento previsto para el {date}.",
+    "Personne": "Persona", "Entreprise": "Empresa",
+    "Prospect": "Prospecto", "Client": "Cliente", "Ancien client": "Excliente",
+    "Fournisseur": "Proveedor", "Autre": "Otro",
+    "Type": "Tipo", "Prénom": "Nombre", "Nom": "Apellido", "Poste": "Cargo",
+    "Statut": "Estado", "E-mail": "Correo electrónico", "Téléphone": "Teléfono", "Adresse": "Dirección",
+    "Site web": "Sitio web", "Étiquettes": "Etiquetas", "Relance": "Seguimiento",
+    "Motif de relance": "Motivo del seguimiento", "Dernier échange": "Último contacto",
+    "Date de relance": "Fecha de seguimiento",
+    "Adresse e-mail invalide.": "La dirección de correo electrónico no es válida.",
+    "Numéro de téléphone invalide.": "El número de teléfono no es válido.",
+    "Adresse du site invalide.": "La dirección del sitio web no es válida.",
+    "{nom} invalide.": "{nom} no es válida.",
+    "Date de relance invalide.": "La fecha de seguimiento no es válida.",
+    "Statut inconnu.": "Estado desconocido.",
+    "Contact introuvable.": "No se encontró el contacto.",
+    "Type de contact inconnu.": "Tipo de contacto desconocido.",
+    "Indiquez un nom.": "Escribe un nombre.",
+    "Entreprise introuvable.": "No se encontró la empresa.",
+    "Fiche invalide.": "El registro no es válido.",
+    "Une fiche ne peut pas appartenir à elle-même.": "Un registro no puede pertenecer a sí mismo.",
+    "Type d'échange inconnu.": "Tipo de interacción desconocido.",
+    "Écrivez le contenu de la note.": "Escribe el contenido de la nota.",
+    "Date de la note invalide.": "La fecha de la nota no es válida.",
+    "Note introuvable.": "No se encontró la nota.",
+    "Le fichier est vide.": "El archivo está vacío.",
+    "Fichier trop gros (5 Mo au plus).": "El archivo es demasiado grande (máximo 5 MB).",
+    "Colonnes introuvables : il faut au moins « Nom » ou « Entreprise ».": "No se encontraron las columnas: se requiere al menos «Apellido» o «Empresa».",
+}
 LIBELLES_STATUTS = {"prospect": "Prospect", "client": "Client", "ancien": "Ancien client",
                     "fournisseur": "Fournisseur", "autre": "Autre"}
 LIBELLES_TYPES = {"personne": "Personne", "entreprise": "Entreprise"}
@@ -65,7 +96,8 @@ COLONNES = (("type", "Type"), ("prenom", "Prénom"), ("nom", "Nom"), ("entrepris
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if config.langue() == "en" else fr
+    langue = config.langue()
+    texte = _ANGLAIS.get(fr, fr) if langue == "en" else _ESPANOL.get(fr, fr) if langue == "es" else fr
     return texte.format(**valeurs) if valeurs else texte
 
 
@@ -142,7 +174,7 @@ def _email(valeur):
     if email.lower().startswith("mailto:"):
         email = email[7:]
     if email and not RE_EMAIL.match(email):
-        raise ValueError("Adresse e-mail invalide.")
+        raise ValueError(_texte("Adresse e-mail invalide."))
     return email[:MAX_COURT]
 
 
@@ -151,7 +183,7 @@ def _telephone(valeur):
     if tel.lower().startswith("tel:"):
         tel = tel[4:]
     if tel and (not RE_TELEPHONE.match(tel) or len(_chiffres(tel)) < 3):
-        raise ValueError("Numéro de téléphone invalide.")
+        raise ValueError(_texte("Numéro de téléphone invalide."))
     return tel
 
 
@@ -161,10 +193,10 @@ def _site(valeur):
         return ""
     if not re.match(r"^https?://", site, re.I):
         if "://" in site or ":" in site.split("/")[0]:
-            raise ValueError("Adresse du site invalide.")
+            raise ValueError(_texte("Adresse du site invalide."))
         site = "https://" + site
     if re.search(r"\s", site) or "." not in site.split("//", 1)[1].split("/")[0]:
-        raise ValueError("Adresse du site invalide.")
+        raise ValueError(_texte("Adresse du site invalide."))
     return site[:MAX_ADRESSE]
 
 
@@ -183,7 +215,7 @@ def _date(valeur, nom="Date de relance"):
             return datetime.datetime.strptime(texte[:10], format_).date().isoformat()
         except ValueError:
             continue
-    raise ValueError(f"{nom} invalide.")
+    raise ValueError(_texte("{nom} invalide.", nom=_texte(nom)))
 
 
 def _etiquettes(valeur):
@@ -201,7 +233,7 @@ def _etiquettes(valeur):
 def _statut(valeur):
     statut = str(valeur or "prospect").strip()
     if statut not in STATUTS:
-        raise ValueError("Statut inconnu.")
+        raise ValueError(_texte("Statut inconnu."))
     return statut
 
 
@@ -258,7 +290,7 @@ def fiche(identifiant):
         d = _lire()
         c = _trouver(d, identifiant)
         if c is None:
-            raise ValueError("Contact introuvable.")
+            raise ValueError(_texte("Contact introuvable."))
         return _complet(d, c)
 
 
@@ -297,7 +329,7 @@ def _valider(d, brut, existant=None):
     """Les champs propres d'une fiche (ValueError sinon)."""
     type_ = brut.get("type") or (existant or {}).get("type") or "personne"
     if type_ not in TYPES:
-        raise ValueError("Type de contact inconnu.")
+        raise ValueError(_texte("Type de contact inconnu."))
     propre = {"type": type_, "prenom": _court(brut.get("prenom")) if type_ == "personne" else "",
               "nom": _court(brut.get("nom")), "poste": _court(brut.get("poste")) if type_ == "personne" else "",
               "email": _email(brut.get("email")), "telephone": _telephone(brut.get("telephone")),
@@ -305,7 +337,7 @@ def _valider(d, brut, existant=None):
               "statut": _statut(brut.get("statut")), "etiquettes": _etiquettes(brut.get("etiquettes")),
               "relance": _date(brut.get("relance")), "relance_motif": _court(brut.get("relance_motif"), 200)}
     if not propre["nom"] and not propre["prenom"]:
-        raise ValueError("Indiquez un nom.")
+        raise ValueError(_texte("Indiquez un nom."))
     if not propre["relance"]:
         propre["relance_motif"] = ""
     # Entreprise : par son identifiant, ou par son nom (créée si besoin).
@@ -316,7 +348,7 @@ def _valider(d, brut, existant=None):
         if ident:
             e = _trouver(d, ident)
             if e is None or e.get("type") != "entreprise":
-                raise ValueError("Entreprise introuvable.")
+                raise ValueError(_texte("Entreprise introuvable."))
             propre["entreprise_id"] = ident
         elif nom_e:
             e = _entreprise_par_nom(d, nom_e) or _nouvelle_entreprise(d, nom_e, propre["statut"])
@@ -327,15 +359,15 @@ def _valider(d, brut, existant=None):
 def enregistrer(brut):
     """Créer (sans id) ou modifier (avec id) une fiche. Renvoie la fiche complète."""
     if not isinstance(brut, dict):
-        raise ValueError("Fiche invalide.")
+        raise ValueError(_texte("Fiche invalide."))
     with _verrou:
         d = _lire()
         existant = _trouver(d, brut.get("id")) if brut.get("id") else None
         if brut.get("id") and existant is None:
-            raise ValueError("Contact introuvable.")
+            raise ValueError(_texte("Contact introuvable."))
         propre = _valider(d, brut, existant)
         if existant and propre["entreprise_id"] == existant["id"]:
-            raise ValueError("Une fiche ne peut pas appartenir à elle-même.")
+            raise ValueError(_texte("Une fiche ne peut pas appartenir à elle-même."))
         a_l_heure = maintenant().strftime(FORMAT_NOTE)
         if existant is None:
             existant = {"id": uuid.uuid4().hex[:12], "notes": [], "cree": a_l_heure}
@@ -375,23 +407,23 @@ def ajouter_note(identifiant, note):
     note = note if isinstance(note, dict) else {}
     type_ = note.get("type") or "note"
     if type_ not in TYPES_NOTES:
-        raise ValueError("Type d'échange inconnu.")
+        raise ValueError(_texte("Type d'échange inconnu."))
     texte = str(note.get("texte") or "").strip()[:MAX_NOTE]
     if not texte:
-        raise ValueError("Écrivez le contenu de la note.")
+        raise ValueError(_texte("Écrivez le contenu de la note."))
     quand = str(note.get("date") or "").strip()
     if quand:
         try:
             quand = datetime.datetime.strptime(quand[:16], FORMAT_NOTE).strftime(FORMAT_NOTE)
         except ValueError:
-            raise ValueError("Date de la note invalide.") from None
+            raise ValueError(_texte("Date de la note invalide.")) from None
     else:
         quand = maintenant().strftime(FORMAT_NOTE)
     with _verrou:
         d = _lire()
         c = _trouver(d, identifiant)
         if c is None:
-            raise ValueError("Contact introuvable.")
+            raise ValueError(_texte("Contact introuvable."))
         propre = {"id": uuid.uuid4().hex[:12], "type": type_, "date": quand, "texte": texte}
         c.setdefault("notes", []).append(propre)
         c["modifie"] = maintenant().strftime(FORMAT_NOTE)
@@ -404,11 +436,11 @@ def supprimer_note(identifiant, note_id):
         d = _lire()
         c = _trouver(d, identifiant)
         if c is None:
-            raise ValueError("Contact introuvable.")
+            raise ValueError(_texte("Contact introuvable."))
         avant = len(c.get("notes") or [])
         c["notes"] = [n for n in c.get("notes") or [] if n.get("id") != note_id]
         if len(c["notes"]) == avant:
-            raise ValueError("Note introuvable.")
+            raise ValueError(_texte("Note introuvable."))
         _ecrire(d)
         return _complet(d, c)
 
@@ -420,7 +452,7 @@ def relancer(identifiant, date="", motif=None):
         d = _lire()
         c = _trouver(d, identifiant)
         if c is None:
-            raise ValueError("Contact introuvable.")
+            raise ValueError(_texte("Contact introuvable."))
         if jour != c.get("relance"):
             c.pop("relance_vue", None)
         c["relance"] = jour
@@ -466,7 +498,7 @@ def alertes_dues():
     for c in sorted(d["contacts"], key=lambda c: c.get("relance") or ""):
         if c.get("relance") and c["relance"] <= jour and c.get("relance_vue") != c["relance"]:
             date_locale = datetime.date.fromisoformat(c["relance"])
-            date_txt = date_locale.strftime("%d/%m/%Y") if config.langue() == "fr" else date_locale.strftime("%Y-%m-%d")
+            date_txt = date_locale.strftime("%d/%m/%Y") if config.langue() != "en" else date_locale.strftime("%Y-%m-%d")
             dues.append({"id": _id_alerte(c), "titre": _texte("Relancer {nom}", nom=nom_affiche(c)),
                          "detail": c.get("relance_motif") or _texte("Relance prévue le {date}.", date=date_txt)})
     return dues
@@ -556,15 +588,15 @@ def _sans_apostrophe(valeur):
 def _lire_csv(texte):
     texte = str(texte or "").lstrip("﻿")
     if not texte.strip():
-        raise ValueError("Le fichier est vide.")
+        raise ValueError(_texte("Le fichier est vide."))
     if len(texte) > MAX_CSV:
-        raise ValueError("Fichier trop gros (5 Mo au plus).")
+        raise ValueError(_texte("Fichier trop gros (5 Mo au plus)."))
     premiere = texte.split("\n", 1)[0]
     separateur = max((";", ",", "\t"), key=premiere.count)
     lignes = list(csv.reader(io.StringIO(texte), delimiter=separateur))
     entete = [_ENTETES.get(_sans_accents(x).strip()) for x in lignes[0]]
     if "nom" not in entete and "prenom" not in entete and "entreprise" not in entete:
-        raise ValueError("Colonnes introuvables : il faut au moins « Nom » ou « Entreprise ».")
+        raise ValueError(_texte("Colonnes introuvables : il faut au moins « Nom » ou « Entreprise »."))
     for numero, valeurs in enumerate(lignes[1:], start=2):
         if not any(v.strip() for v in valeurs):
             continue

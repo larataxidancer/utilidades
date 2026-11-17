@@ -35,6 +35,36 @@
       "Clipboard unavailable: install wl-clipboard (Wayland) or xclip (sudo apt install wl-clipboard xclip).",
     "Le presse-papiers ne répond pas.": "The clipboard is not responding.",
   });
+  I18N.ajouterEspanol({
+    "Presse-papiers": "Portapapeles",
+    "Historique du presse-papiers": "Historial del portapapeles",
+    "Chercher…": "Buscar…",
+    "⏸ Pause": "⏸ Pausar",
+    "▶ Reprendre": "▶ Reanudar",
+    "🧹 Tout effacer": "🧹 Borrar todo",
+    "Gardé seulement en mémoire, effacé à la fermeture de Mes outils. Les mots de passe copiés depuis le coffre (et depuis la plupart des gestionnaires de mots de passe) n'y entrent pas.": "Se conserva solo en la memoria y se borra al cerrar Mes outils. Las contraseñas copiadas desde la bóveda (y desde la mayoría de los administradores de contraseñas) no se guardan aquí.",
+    "En pause : les textes copiés ne sont pas gardés.": "En pausa: no se guardan los textos copiados.",
+    "Rien pour l'instant : copiez un texte (Ctrl + C), il apparaîtra ici.": "Todavía no hay nada: copia un texto (Ctrl + C) y aparecerá aquí.",
+    "Aucun élément ne correspond.": "No hay elementos que coincidan.",
+    "Recopier": "Copiar de nuevo",
+    "Épingler": "Fijar",
+    "Désépingler": "Quitar de elementos fijados",
+    "Supprimer": "Eliminar",
+    "Épinglé": "Fijado",
+    "📋 Recopié": "📋 Copiado de nuevo",
+    "Tout effacer ?": "¿Borrar todo?",
+    "Les éléments épinglés sont gardés.": "Los elementos fijados se conservarán.",
+    "Effacer": "Borrar",
+    "{n} caractères": "{n} caracteres",
+    "{n} lignes": "{n} líneas",
+    "{n} / {max} éléments": "{n} / {max} elementos",
+    "Élément introuvable (déjà effacé ?).": "No se encontró el elemento (¿ya se borró?).",
+    "50 éléments épinglés au plus : désépinglez-en un d'abord.": "Se pueden fijar hasta 50 elementos: quita uno de los fijados primero.",
+    "Le presse-papiers est occupé par un autre programme.": "Otro programa está usando el portapapeles.",
+    "Copie dans le presse-papiers impossible.": "No se pudo copiar al portapapeles.",
+    "Presse-papiers indisponible : installez wl-clipboard (Wayland) ou xclip (sudo apt install wl-clipboard xclip).": "El portapapeles no está disponible: instala wl-clipboard (Wayland) o xclip (sudo apt install wl-clipboard xclip).",
+    "Le presse-papiers ne répond pas.": "El portapapeles no responde.",
+  });
 
   const P = { r: null, recherche: "", empreinte: "" };
   let minuterie = null;

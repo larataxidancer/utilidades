@@ -58,6 +58,52 @@ SENSIBLES = re.compile(
 EXEMPLES = re.compile(r"\.(example|sample|template|dist)$", re.I)
 MESSAGE_QUOTA = "Limite d'appels à GitHub atteinte : réessayez dans quelques minutes."
 
+_ESPAGNOL = {
+    "Limite d'appels à GitHub atteinte : réessayez dans quelques minutes.":
+        "Se alcanzó el límite de solicitudes a GitHub; vuelve a intentarlo en unos minutos.",
+    "GitHub ne répond pas : vérifiez la connexion internet.": "GitHub no responde: revisa la conexión a Internet.",
+    "GitHub n'est pas connecté.": "GitHub no está conectado.",
+    "L'accès à GitHub a été retiré : reconnectez GitHub.": "Se revocó el acceso a GitHub: vuelve a conectar GitHub.",
+    "GitHub a refusé la demande ({statut}){detail}.": "GitHub rechazó la solicitud ({statut}){detail}.",
+    "Le « Device Flow » n'est pas activé dans l'application GitHub "
+    "(github.com > Settings > Developer settings > OAuth Apps > Enable Device Flow).":
+        "El «Device Flow» no está activado en la aplicación de GitHub "
+        "(github.com > Settings > Developer settings > OAuth Apps > Enable Device Flow).",
+    "L'identifiant de l'application GitHub (client_id) est invalide.":
+        "El identificador de la aplicación de GitHub (client_id) no es válido.",
+    "Réponse inattendue de GitHub.": "Respuesta inesperada de GitHub.",
+    "La connexion à GitHub n'est pas encore configurée : il manque l'identifiant de l'application (client_id).":
+        "La conexión con GitHub aún no está configurada: falta el identificador de la aplicación (client_id).",
+    "GitHub a donné un accès qui ne fonctionne pas : réessayez.": "GitHub otorgó un acceso que no funciona: vuelve a intentarlo.",
+    "Impossible de ranger l'accès GitHub dans {coffre}.": "No se pudo guardar el acceso a GitHub en {coffre}.",
+    "GitHub refuse l'accès : reconnectez GitHub.": "GitHub rechazó el acceso: vuelve a conectar GitHub.",
+    "Le dossier de destination existe déjà.": "La carpeta de destino ya existe.",
+    "git a échoué.": "Git falló.",
+    "Git n'est pas installé sur ce PC (https://git-scm.com).": "Git no está instalado en este equipo (https://git-scm.com).",
+    "Git met trop de temps à répondre.": "Git tarda demasiado en responder.",
+    "Dépôt invalide.": "El repositorio no es válido.",
+    "Choisissez un de vos dossiers de projets.": "Selecciona una de tus carpetas de proyectos.",
+    "Le dossier {dossier} existe déjà.": "La carpeta {dossier} ya existe.",
+    "Dossier introuvable.": "No se encontró la carpeta.",
+    "Aucun fichier à envoyer dans ce dossier.": "No hay archivos para enviar en esta carpeta.",
+    "Nom de dépôt invalide : lettres, chiffres, tirets, points et soulignés seulement.":
+        "El nombre del repositorio no es válido: solo se permiten letras, números, guiones, puntos y guiones bajos.",
+    "Ce dossier est déjà relié à {depot}.": "Esta carpeta ya está vinculada a {depot}.",
+    "GitHub refuse les fichiers de plus de 100 Mo : {fichiers}": "GitHub no acepta archivos de más de 100 MB: {fichiers}",
+    "Un dépôt « {nom} » existe déjà sur votre compte.": "Ya existe un repositorio «{nom}» en tu cuenta.",
+    "GitHub a refusé la création ({statut}){detail}.": "GitHub rechazó la creación ({statut}){detail}.",
+    "Le dépôt {url} est créé, mais l'envoi a échoué ({erreur}). Relancez « git push -u origin {branche} » dans le dossier.":
+        "Se creó el repositorio {url}, pero no se pudo enviar el contenido ({erreur}). Ejecuta «git push -u origin {branche}» en la carpeta.",
+    "Adresse refusée.": "Dirección rechazada.",
+    "VS Code est introuvable sur ce PC.": "No se encontró VS Code en este equipo.",
+    "Ouvrez d'abord VS Code.": "Primero abre VS Code.",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
+
 
 class ErreurGitHub(Exception):
     pass
@@ -100,7 +146,7 @@ def _requete(methode, url, jeton=None, donnees=None, formulaire=None, delai=20):
             contenu = None
         return e.code, contenu
     except (urllib.error.URLError, TimeoutError, OSError):
-        raise ErreurGitHub("GitHub ne répond pas : vérifiez la connexion internet.") from None
+        raise ErreurGitHub(_i18n("GitHub ne répond pas : vérifiez la connexion internet.")) from None
 
 
 def jeton():
@@ -111,16 +157,17 @@ def _appel(methode, chemin, donnees=None):
     """Appel à l'API avec le jeton du coffre ; lève ErreurGitHub en cas d'échec."""
     j = jeton()
     if not j:
-        raise ErreurGitHub("GitHub n'est pas connecté.")
+        raise ErreurGitHub(_i18n("GitHub n'est pas connecté."))
     statut, r = _requete(methode, API + chemin, jeton=j, donnees=donnees)
     if statut == 401:
         deconnecter()
-        raise ErreurGitHub("L'accès à GitHub a été retiré : reconnectez GitHub.")
+        raise ErreurGitHub(_i18n("L'accès à GitHub a été retiré : reconnectez GitHub."))
     message = (r or {}).get("message") if isinstance(r, dict) else None
     if statut == 429 or statut == 403 and "rate limit" in (message or "").lower():
-        raise ErreurQuotaGitHub(MESSAGE_QUOTA)
+        raise ErreurQuotaGitHub(_i18n(MESSAGE_QUOTA))
     if statut >= 400:
-        raise ErreurGitHub(f"GitHub a refusé la demande ({statut}){' : ' + message if message else ''}.")
+        raise ErreurGitHub(_i18n("GitHub a refusé la demande ({statut}){detail}.", statut=statut,
+                                 detail=f" : {message}" if message else ""))
     return r
 
 
@@ -144,19 +191,18 @@ def etat():
 def _message_oauth(r):
     erreur = (r or {}).get("error") if isinstance(r, dict) else None
     if erreur == "device_flow_disabled":
-        return ("Le « Device Flow » n'est pas activé dans l'application GitHub "
-                "(github.com > Settings > Developer settings > OAuth Apps > Enable Device Flow).")
+        return _i18n("Le « Device Flow » n'est pas activé dans l'application GitHub "
+                     "(github.com > Settings > Developer settings > OAuth Apps > Enable Device Flow).")
     if erreur in ("incorrect_client_credentials", "unauthorized_client", "Not Found"):
-        return "L'identifiant de l'application GitHub (client_id) est invalide."
+        return _i18n("L'identifiant de l'application GitHub (client_id) est invalide.")
     return (r or {}).get("error_description") if isinstance(r, dict) and r.get("error_description") \
-        else "Réponse inattendue de GitHub."
+        else _i18n("Réponse inattendue de GitHub.")
 
 
 def connexion_debut(client_id):
     """Demande un code à GitHub et ouvre la page où le saisir."""
     if not client_id:
-        raise ErreurGitHub("La connexion à GitHub n'est pas encore configurée : il manque "
-                           "l'identifiant de l'application (client_id).")
+        raise ErreurGitHub(_i18n("La connexion à GitHub n'est pas encore configurée : il manque l'identifiant de l'application (client_id)."))
     statut, r = _requete("POST", URL_CODE, formulaire={"client_id": client_id, "scope": PORTEE})
     if statut != 200 or not isinstance(r, dict) or "device_code" not in r:
         raise ErreurGitHub(_message_oauth(r))
@@ -191,10 +237,11 @@ def connexion_suite():
     if r.get("access_token"):
         statut, utilisateur = _requete("GET", API + "/user", jeton=r["access_token"])
         if statut != 200:
-            raise ErreurGitHub("GitHub a donné un accès qui ne fonctionne pas : réessayez.")
+            raise ErreurGitHub(_i18n("GitHub a donné un accès qui ne fonctionne pas : réessayez."))
         profil = _profil_de(utilisateur)
         if not coffre_windows.ecrire(CIBLE_COFFRE, profil["login"], r["access_token"]):
-            raise ErreurGitHub(f"Impossible de ranger l'accès GitHub dans {systeme.nom_du_coffre()}.")
+            raise ErreurGitHub(_i18n("Impossible de ranger l'accès GitHub dans {coffre}.",
+                                     coffre=systeme.nom_du_coffre()))
         with _verrou:
             _attente["code"] = None
         _cache["profil"] = profil
@@ -308,7 +355,7 @@ def _env_git(avec_acces):
     if avec_acces:
         j = jeton()
         if not j:
-            raise ErreurGitHub("GitHub n'est pas connecté.")
+            raise ErreurGitHub(_i18n("GitHub n'est pas connecté."))
         login = (_cache["profil"] or etat()).get("login") or "mes-outils"
         entete = base64.b64encode(f"{login}:{j}".encode()).decode()
         # L'accès ne vaut que pour github.com ; le gestionnaire d'identifiants
@@ -324,13 +371,13 @@ def _message_git(sortie):
     texte = (sortie or "").strip()
     bas = texte.lower()
     if "could not resolve host" in bas or "unable to access" in bas and "resolve" in bas:
-        return "GitHub ne répond pas : vérifiez la connexion internet."
+        return _i18n("GitHub ne répond pas : vérifiez la connexion internet.")
     if "authentication failed" in bas or "403" in bas or "permission" in bas and "denied" in bas:
-        return "GitHub refuse l'accès : reconnectez GitHub."
+        return _i18n("GitHub refuse l'accès : reconnectez GitHub.")
     if "already exists and is not an empty directory" in bas:
-        return "Le dossier de destination existe déjà."
+        return _i18n("Le dossier de destination existe déjà.")
     lignes = [l for l in texte.splitlines() if l.strip() and not l.lower().startswith(("warning:", "hint:"))]
-    return lignes[-1] if lignes else "git a échoué."
+    return lignes[-1] if lignes else _i18n("git a échoué.")
 
 
 def _git(args, dossier, acces=False, delai=120, verifier=True):
@@ -339,9 +386,9 @@ def _git(args, dossier, acces=False, delai=120, verifier=True):
                            capture_output=True, text=True, encoding="utf-8", errors="replace",
                            timeout=delai, **systeme.options_sans_fenetre())
     except FileNotFoundError:
-        raise ErreurGitHub("Git n'est pas installé sur ce PC (https://git-scm.com).") from None
+        raise ErreurGitHub(_i18n("Git n'est pas installé sur ce PC (https://git-scm.com).")) from None
     except subprocess.TimeoutExpired:
-        raise ErreurGitHub("Git met trop de temps à répondre.") from None
+        raise ErreurGitHub(_i18n("Git met trop de temps à répondre.")) from None
     if verifier and p.returncode != 0:
         raise ErreurGitHub(_message_git(p.stderr or p.stdout))
     return p if not verifier else p.stdout
@@ -357,13 +404,13 @@ def _config_git(dossier, cle):
 
 def cloner(complet, dossier, dossiers):
     if not COMPLET_VALIDE.match(complet or ""):
-        raise ErreurGitHub("Dépôt invalide.")
+        raise ErreurGitHub(_i18n("Dépôt invalide."))
     if dossier not in (dossiers or []) or not os.path.isdir(dossier):
-        raise ErreurGitHub("Choisissez un de vos dossiers de projets.")
+        raise ErreurGitHub(_i18n("Choisissez un de vos dossiers de projets."))
     d = _appel("GET", f"/repos/{complet}")
     destination = os.path.join(dossier, d["name"])
     if os.path.exists(destination):
-        raise ErreurGitHub(f"Le dossier {destination} existe déjà.")
+        raise ErreurGitHub(_i18n("Le dossier {dossier} existe déjà.", dossier=destination))
     _git(["clone", "-q", d["clone_url"], destination], dossier, acces=True, delai=1800)
     return {"chemin": destination}
 
@@ -399,14 +446,14 @@ def apercu(dossier):
     sensibles (.env, clés…) et fichiers trop gros. Ne modifie rien."""
     dossier = os.path.abspath((dossier or "").strip().strip('"'))
     if not os.path.isdir(dossier):
-        raise ErreurGitHub("Dossier introuvable.")
+        raise ErreurGitHub(_i18n("Dossier introuvable."))
     existant = os.path.isdir(os.path.join(dossier, ".git"))
     relie = origine(dossier) if existant else None
     if relie:
         return {"dossier": dossier, "deja_relie": relie}
     fichiers = [f for f in _fichiers_a_envoyer(dossier, existant) if f]
     if not fichiers:
-        raise ErreurGitHub("Aucun fichier à envoyer dans ce dossier.")
+        raise ErreurGitHub(_i18n("Aucun fichier à envoyer dans ce dossier."))
     taille, trop_gros, lourds, sensibles = 0, [], [], []
     for f in fichiers:
         try:
@@ -430,25 +477,27 @@ def apercu(dossier):
 def creer_et_envoyer(dossier, nom, description="", prive=True):
     nom = (nom or "").strip()
     if not NOM_VALIDE.match(nom) or nom in (".", ".."):
-        raise ErreurGitHub("Nom de dépôt invalide : lettres, chiffres, tirets, points et soulignés seulement.")
+        raise ErreurGitHub(_i18n("Nom de dépôt invalide : lettres, chiffres, tirets, points et soulignés seulement."))
     a = apercu(dossier)
     if a.get("deja_relie"):
-        raise ErreurGitHub(f"Ce dossier est déjà relié à {a['deja_relie']}.")
+        raise ErreurGitHub(_i18n("Ce dossier est déjà relié à {depot}.", depot=a["deja_relie"]))
     if a["trop_gros"]:
-        raise ErreurGitHub("GitHub refuse les fichiers de plus de 100 Mo : " + ", ".join(a["trop_gros"][:3]))
+        raise ErreurGitHub(_i18n("GitHub refuse les fichiers de plus de 100 Mo : {fichiers}",
+                                 fichiers=", ".join(a["trop_gros"][:3])))
     dossier = a["dossier"]
     profil = etat()
     if not profil.get("connecte"):
-        raise ErreurGitHub("GitHub n'est pas connecté.")
+        raise ErreurGitHub(_i18n("GitHub n'est pas connecté."))
     j = jeton()
     statut, d = _requete("POST", API + "/user/repos", jeton=j, donnees={
         "name": nom, "description": (description or "").strip()[:350], "private": bool(prive),
         "auto_init": False})
     if statut == 422:
-        raise ErreurGitHub(f"Un dépôt « {nom} » existe déjà sur votre compte.")
+        raise ErreurGitHub(_i18n("Un dépôt « {nom} » existe déjà sur votre compte.", nom=nom))
     if statut >= 400 or not isinstance(d, dict):
         message = (d or {}).get("message") if isinstance(d, dict) else None
-        raise ErreurGitHub(f"GitHub a refusé la création ({statut}){' : ' + message if message else ''}.")
+        raise ErreurGitHub(_i18n("GitHub a refusé la création ({statut}){detail}.", statut=statut,
+                                 detail=f" : {message}" if message else ""))
 
     # Identité des commits : celle de git si elle existe, sinon l'adresse
     # « noreply » de GitHub (l'adresse e-mail réelle n'est jamais publiée).
@@ -466,8 +515,8 @@ def creer_et_envoyer(dossier, nom, description="", prive=True):
     try:
         _git(["push", "-q", "-u", "origin", branche], dossier, acces=True, delai=1800)
     except ErreurGitHub as e:
-        raise ErreurGitHub(f"Le dépôt {d['html_url']} est créé, mais l'envoi a échoué ({e}). "
-                           f"Relancez « git push -u origin {branche} » dans le dossier.") from None
+        raise ErreurGitHub(_i18n("Le dépôt {url} est créé, mais l'envoi a échoué ({erreur}). Relancez « git push -u origin {branche} » dans le dossier.",
+                                 url=d["html_url"], erreur=e, branche=branche)) from None
     return {"url": d["html_url"], "complet": d["full_name"], "nombre": a["nombre"], "dossier": dossier}
 
 
@@ -491,7 +540,7 @@ def _empreinte():
     """Courte empreinte du jeton : la mémoire ne sert qu'au même compte."""
     j = jeton()
     if not j:
-        raise ErreurGitHub("GitHub n'est pas connecté.")
+        raise ErreurGitHub(_i18n("GitHub n'est pas connecté."))
     return hashlib.sha256(j.encode()).hexdigest()[:16]
 
 
@@ -722,13 +771,13 @@ ROUTES = {
 # ---------------------------------------------------------------------------
 def ouvrir_page(url):
     if not (url or "").startswith("https://github.com/"):
-        raise ErreurGitHub("Adresse refusée.")
+        raise ErreurGitHub(_i18n("Adresse refusée."))
     webbrowser.open(url)
 
 
 def ouvrir_dossier(chemin):
     if not os.path.isdir(chemin or ""):
-        raise ErreurGitHub("Dossier introuvable.")
+        raise ErreurGitHub(_i18n("Dossier introuvable."))
     systeme.ouvrir(chemin)
 
 
@@ -739,10 +788,10 @@ def _vscode():
 
 def ouvrir_vscode(chemin):
     if not os.path.isdir(chemin or ""):
-        raise ErreurGitHub("Dossier introuvable.")
+        raise ErreurGitHub(_i18n("Dossier introuvable."))
     code = _vscode()
     if not code:
-        raise ErreurGitHub("VS Code est introuvable sur ce PC.")
+        raise ErreurGitHub(_i18n("VS Code est introuvable sur ce PC."))
     if not systeme.WINDOWS:
         systeme.lancer_detache([code, chemin])
         return

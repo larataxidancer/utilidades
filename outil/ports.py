@@ -32,6 +32,7 @@ import time
 import webbrowser
 from concurrent.futures import ThreadPoolExecutor
 
+import config
 import systeme
 
 SANS_FENETRE = systeme.SANS_FENETRE  # 0 hors de Windows
@@ -71,6 +72,27 @@ PROTEGES_LINUX = {
 PREFIXES_PROTEGES_LINUX = ("systemd", "dbus", "pipewire", "gnome-session", "gdm-", "kworker", "ksoftirqd")
 PID_ROOT_PROTEGES = 300  # Linux : un PID plus petit appartenant à root est un service du démarrage
 NOM_INCONNU = "Autre utilisateur"
+_ESPAGNOL = {
+    "Autre utilisateur": "Otro usuario",
+    "La commande ss est introuvable : installez le paquet iproute2.":
+        "No se encontró el comando ss: instala el paquete iproute2.",
+    "Numéro de processus invalide.": "El número de proceso no es válido.",
+    "Numéro de port invalide.": "El número de puerto no es válido.",
+    "Processus système : arrêt refusé.": "Proceso del sistema: no se puede detener.",
+    "C'est « Mes outils » lui-même : arrêt refusé.": "Es el propio «Mes outils»: no se puede detener.",
+    "Ce processus n'existe plus.": "Este proceso ya no existe.",
+    "Ce numéro de processus correspond maintenant à un autre programme : actualisez la liste.":
+        "Este número de proceso ahora corresponde a otro programa: actualiza la lista.",
+    "Cet arbre de processus contient « Mes outils » : arrêt refusé.":
+        "Este árbol de procesos incluye «Mes outils»: no se puede detener.",
+    "Arrêt impossible : {detail}": "No se pudo detener: {detail}",
+    "le processus ne s'arrête pas.": "el proceso no se detiene.",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
 
 _verrou = threading.Lock()
 _cache = {"udp": None, "instant": 0.0, "resultat": None}
@@ -334,7 +356,7 @@ def _ss(options):
     try:
         return _executer(["ss", "-H", options])
     except FileNotFoundError:
-        raise ValueError("La commande ss est introuvable : installez le paquet iproute2.") from None
+        raise ValueError(_i18n("La commande ss est introuvable : installez le paquet iproute2.")) from None
 
 
 def _lister_linux(udp):
@@ -350,7 +372,7 @@ def _lister_linux(udp):
         nom_ss = e.pop("nom_ss", None)
         info = infos.get(e["pid"]) or {}
         inconnu = e["pid"] is None
-        nom = NOM_INCONNU if inconnu else (info.get("nom") or nom_ss or "?")
+        nom = _i18n(NOM_INCONNU) if inconnu else (info.get("nom") or nom_ss or "?")
         resultat.append({
             **e, "nom": nom, "memoire_ko": info.get("memoire_ko"), "commande": info.get("commande") or "",
             "dev": PORTS_DEV.get(e["port"], ""),
@@ -462,9 +484,9 @@ def _pid(d):
     try:
         pid = int(d.get("pid"))
     except (TypeError, ValueError):
-        raise ValueError("Numéro de processus invalide.") from None
+        raise ValueError(_i18n("Numéro de processus invalide.")) from None
     if pid < 0:
-        raise ValueError("Numéro de processus invalide.")
+        raise ValueError(_i18n("Numéro de processus invalide."))
     return pid
 
 
@@ -472,9 +494,9 @@ def _port(d):
     try:
         port = int(d.get("port"))
     except (TypeError, ValueError):
-        raise ValueError("Numéro de port invalide.") from None
+        raise ValueError(_i18n("Numéro de port invalide.")) from None
     if not 1 <= port <= 65535:
-        raise ValueError("Numéro de port invalide.")
+        raise ValueError(_i18n("Numéro de port invalide."))
     return port
 
 
@@ -491,21 +513,21 @@ def chercher(d):
 def verifier_arret(pid, nom_attendu, arbre=False):
     """Lève ValueError si le processus ne doit pas être arrêté. Rend son nom."""
     if pid in (PID_PROTEGES if systeme.WINDOWS else {0, 1}):
-        raise ValueError("Processus système : arrêt refusé.")
+        raise ValueError(_i18n("Processus système : arrêt refusé."))
     nous = nos_pids()
     if pid in nous:
-        raise ValueError("C'est « Mes outils » lui-même : arrêt refusé.")
+        raise ValueError(_i18n("C'est « Mes outils » lui-même : arrêt refusé."))
     actuel = processus_pid(pid)
     if not actuel:
-        raise ValueError("Ce processus n'existe plus.")
+        raise ValueError(_i18n("Ce processus n'existe plus."))
     if nom_court(actuel["nom"]) in PROTEGES:
-        raise ValueError("Processus système : arrêt refusé.")
+        raise ValueError(_i18n("Processus système : arrêt refusé."))
     if not systeme.WINDOWS and est_protege_linux(pid, actuel["nom"], actuel.get("uid")):
-        raise ValueError("Processus système : arrêt refusé.")
+        raise ValueError(_i18n("Processus système : arrêt refusé."))
     if not nom_attendu or nom_court(actuel["nom"]) != nom_court(nom_attendu):
-        raise ValueError("Ce numéro de processus correspond maintenant à un autre programme : actualisez la liste.")
+        raise ValueError(_i18n("Ce numéro de processus correspond maintenant à un autre programme : actualisez la liste."))
     if arbre and pid in ancetres(os.getpid()):
-        raise ValueError("Cet arbre de processus contient « Mes outils » : arrêt refusé.")
+        raise ValueError(_i18n("Cet arbre de processus contient « Mes outils » : arrêt refusé."))
     return actuel["nom"]
 
 
@@ -516,14 +538,16 @@ def arreter(d):
     if not systeme.WINDOWS:
         ok, message = systeme.arreter_processus(pid, arbre=arbre)
         if not ok:
-            raise ValueError("Arrêt impossible : " + (message or "le processus ne s'arrête pas."))
+            raise ValueError(_i18n("Arrêt impossible : {detail}",
+                                   detail=message or _i18n("le processus ne s'arrête pas.")))
         oublier_cache()
         return {"ok": True, "pid": pid, "nom": nom}
     commande = ["taskkill", "/PID", str(pid), "/F"] + (["/T"] if arbre else [])
     r = subprocess.run(commande, capture_output=True, timeout=20, **systeme.options_sans_fenetre())
     if r.returncode != 0:
         detail = (r.stderr or r.stdout or b"").decode("oem", errors="replace").strip().splitlines()
-        raise ValueError("Arrêt impossible : " + (detail[0] if detail else f"code {r.returncode}"))
+        raise ValueError(_i18n("Arrêt impossible : {detail}",
+                               detail=detail[0] if detail else f"code {r.returncode}"))
     oublier_cache()
     return {"ok": True, "pid": pid, "nom": nom}
 

@@ -152,19 +152,19 @@ class SourceWindows:
     def ecrire(self, texte):
         """Mettre un texte dans le presse-papiers (copie ordinaire)."""
         if not self._ouvrir(20):
-            raise RuntimeError("Le presse-papiers est occupé par un autre programme.")
+            raise RuntimeError(_i18n("Le presse-papiers est occupé par un autre programme."))
         try:
             self.u32.EmptyClipboard()
             octets = (str(texte) + "\0").encode("utf-16-le")
             h = self.k32.GlobalAlloc(GMEM_MOVEABLE, len(octets))
             if not h:
-                raise RuntimeError("Mémoire insuffisante pour copier ce texte.")
+                raise RuntimeError(_i18n("Mémoire insuffisante pour copier ce texte."))
             p = self.k32.GlobalLock(h)
             ctypes.memmove(p, octets, len(octets))
             self.k32.GlobalUnlock(h)
             if not self.u32.SetClipboardData(CF_UNICODETEXT, h):
                 self.k32.GlobalFree(h)
-                raise RuntimeError("Copie dans le presse-papiers impossible.")
+                raise RuntimeError(_i18n("Copie dans le presse-papiers impossible."))
         finally:
             self.u32.CloseClipboard()
 
@@ -181,6 +181,23 @@ DELAI_COMMANDE = 2        # secondes pour lire avec wl-paste, xclip, xsel
 DELAI_TK = 1.0            # secondes d'attente d'une réponse du fil de Tk
 MESSAGE_INDISPONIBLE = ("Presse-papiers indisponible : installez wl-clipboard (Wayland) ou xclip "
                         "(sudo apt install wl-clipboard xclip).")
+_ESPAGNOL = {
+    "Le presse-papiers est occupé par un autre programme.": "Otro programa está usando el portapapeles.",
+    "Mémoire insuffisante pour copier ce texte.": "No hay suficiente memoria para copiar este texto.",
+    "Copie dans le presse-papiers impossible.": "No se pudo copiar al portapapeles.",
+    "Le presse-papiers ne répond pas.": "El portapapeles no responde.",
+    "Élément introuvable (déjà effacé ?).": "No se encontró el elemento (¿ya se eliminó?).",
+    "50 éléments épinglés au plus : désépinglez-en un d'abord.":
+        "Se pueden fijar hasta 50 elementos; primero desmarca uno.",
+    "Presse-papiers indisponible : installez wl-clipboard (Wayland) ou xclip "
+    "(sudo apt install wl-clipboard xclip).":
+        "Portapapeles no disponible: instala wl-clipboard (Wayland) o xclip "
+        "(sudo apt install wl-clipboard xclip).",
+}
+
+
+def _i18n(texte):
+    return _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
 
 
 def empreinte(texte):
@@ -271,9 +288,9 @@ def _donner(args, texte):
         r = subprocess.run(args, input=str(texte).encode("utf-8"), stdout=subprocess.DEVNULL,
                            stderr=subprocess.DEVNULL, timeout=10, **systeme.options_sans_fenetre())
     except (OSError, subprocess.SubprocessError):
-        raise RuntimeError("Copie dans le presse-papiers impossible.") from None
+        raise RuntimeError(_i18n("Copie dans le presse-papiers impossible.")) from None
     if r.returncode != 0:
-        raise RuntimeError("Copie dans le presse-papiers impossible.")
+        raise RuntimeError(_i18n("Copie dans le presse-papiers impossible."))
 
 
 def _texte(code, sortie):
@@ -364,9 +381,9 @@ class SourceTk(SourceLinux):
         try:
             self.racine.after(0, tache)
         except Exception:  # noqa: BLE001 — fenêtre fermée, boucle de Tk arrêtée
-            raise RuntimeError("Le presse-papiers ne répond pas.") from None
+            raise RuntimeError(_i18n("Le presse-papiers ne répond pas.")) from None
         if not fini.wait(DELAI_TK):
-            raise RuntimeError("Le presse-papiers ne répond pas.")
+            raise RuntimeError(_i18n("Le presse-papiers ne répond pas."))
         if "erreur" in resultat:
             raise resultat["erreur"]
         return resultat.get("valeur")
@@ -399,7 +416,7 @@ class SourceTk(SourceLinux):
         except RuntimeError:
             raise
         except Exception:  # noqa: BLE001
-            raise RuntimeError("Copie dans le presse-papiers impossible.") from None
+            raise RuntimeError(_i18n("Copie dans le presse-papiers impossible.")) from None
 
     def effacer(self):
         self._dans_tk(self.racine.clipboard_clear)
@@ -421,7 +438,7 @@ class SourceAbsente:
         return None
 
     def ecrire(self, texte):
-        raise RuntimeError(MESSAGE_INDISPONIBLE)
+        raise RuntimeError(_i18n(MESSAGE_INDISPONIBLE))
 
     def effacer(self):
         pass
@@ -519,7 +536,7 @@ class Historique:
         with self._verrou:
             e = self.trouver(identifiant)
             if e is None:
-                raise ValueError("Élément introuvable (déjà effacé ?).")
+                raise ValueError(_i18n("Élément introuvable (déjà effacé ?)."))
             self._elements.remove(e)
             e["quand"] = _heure()
             self._elements.insert(0, e)
@@ -541,9 +558,9 @@ class Historique:
         with self._verrou:
             e = self.trouver(identifiant)
             if e is None:
-                raise ValueError("Élément introuvable (déjà effacé ?).")
+                raise ValueError(_i18n("Élément introuvable (déjà effacé ?)."))
             if valeur and not e["epingle"] and sum(x["epingle"] for x in self._elements) >= MAX_EPINGLES:
-                raise ValueError("50 éléments épinglés au plus : désépinglez-en un d'abord.")
+                raise ValueError(_i18n("50 éléments épinglés au plus : désépinglez-en un d'abord."))
             e["epingle"] = bool(valeur)
             if not valeur:
                 self._rogner()
@@ -773,7 +790,7 @@ def _identifiant(d):
     try:
         return int(d.get("id"))
     except (TypeError, ValueError):
-        raise ValueError("Élément introuvable (déjà effacé ?).") from None
+        raise ValueError(_i18n("Élément introuvable (déjà effacé ?).")) from None
 
 
 ROUTES = {

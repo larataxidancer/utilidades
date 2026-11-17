@@ -39,6 +39,25 @@ class ErreurCoffre(Exception):
     pass
 
 
+_ESPAGNOL = {
+    "Le coffre est verrouillé.": "La bóveda está bloqueada.",
+    "Un coffre existe déjà.": "Ya existe una bóveda.",
+    "Aucun coffre : créez-le d'abord.": "No hay una bóveda; créela primero.",
+    "Trop d'essais. Réessayez dans quelques minutes.": "Demasiados intentos. Vuelve a intentarlo en unos minutos.",
+    "Mot de passe maître incorrect.": "La contraseña maestra es incorrecta.",
+    "Champ inconnu.": "Campo desconocido.",
+    "Entrée introuvable.": "No se encontró la entrada.",
+    "Donnez un nom à l'entrée.": "Asigna un nombre a la entrada.",
+    "Le mot de passe maître doit faire au moins 10 caractères. Une phrase de quelques mots est idéale.":
+        "La contraseña maestra debe tener al menos 10 caracteres. Es ideal usar una frase de varias palabras.",
+    "Le presse-papiers est occupé par un autre programme.": "Otro programa está usando el portapapeles.",
+}
+
+
+def _texte(texte):
+    return _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+
+
 def _b64(b):
     return base64.b64encode(b).decode("ascii")
 
@@ -87,14 +106,14 @@ class Coffre:
 
     def _toucher(self):
         if not self.ouvert():
-            raise ErreurCoffre("Le coffre est verrouillé.")
+            raise ErreurCoffre(_texte("Le coffre est verrouillé."))
         self._dernier_usage = time.time()
 
     # -- création, ouverture, fermeture --------------------------------------------
     def creer(self, maitre):
         with self._verrou:
             if self.existe():
-                raise ErreurCoffre("Un coffre existe déjà.")
+                raise ErreurCoffre(_texte("Un coffre existe déjà."))
             _verifier_maitre(maitre)
             sel = secrets.token_bytes(16)
             self._cle = _cle(maitre, sel)
@@ -106,12 +125,12 @@ class Coffre:
     def ouvrir(self, maitre):
         with self._verrou:
             if not self.existe():
-                raise ErreurCoffre("Aucun coffre : créez-le d'abord.")
+                raise ErreurCoffre(_texte("Aucun coffre : créez-le d'abord."))
             # Freiner les essais en série : après 5 échecs en 5 minutes, il faut attendre.
             maintenant = time.time()
             self._essais = [t for t in self._essais if maintenant - t < 300]
             if len(self._essais) >= 5:
-                raise ErreurCoffre("Trop d'essais. Réessayez dans quelques minutes.")
+                raise ErreurCoffre(_texte("Trop d'essais. Réessayez dans quelques minutes."))
             with open(self.fichier, encoding="utf-8") as f:
                 contenu = json.load(f)
             sel = _deb64(contenu["sel"])
@@ -122,7 +141,7 @@ class Coffre:
                 entrees = json.loads(_dechiffrer(cle, contenu["coffre"], b"coffre").decode("utf-8"))
             except InvalidTag:
                 self._essais.append(maintenant)
-                raise ErreurCoffre("Mot de passe maître incorrect.")
+                raise ErreurCoffre(_texte("Mot de passe maître incorrect."))
             self._cle, self._sel, self._entrees = cle, sel, entrees
             self._dernier_usage = time.time()
 
@@ -170,12 +189,12 @@ class Coffre:
 
     def reveler(self, identifiant, champ):
         if champ not in ("mot_de_passe", "note"):
-            raise ErreurCoffre("Champ inconnu.")
+            raise ErreurCoffre(_texte("Champ inconnu."))
         with self._verrou:
             self._toucher()
             e = next((x for x in self._entrees if x["id"] == identifiant), None)
             if not e:
-                raise ErreurCoffre("Entrée introuvable.")
+                raise ErreurCoffre(_texte("Entrée introuvable."))
             return e.get(champ, "")
 
     def enregistrer(self, entree):
@@ -184,7 +203,7 @@ class Coffre:
             entree = {k: (v.strip() if isinstance(v, str) and k != "mot_de_passe" and k != "note" else v)
                       for k, v in entree.items() if k in ("id", "titre", "site", "identifiant", "mot_de_passe", "categorie", "note")}
             if not entree.get("titre"):
-                raise ErreurCoffre("Donnez un nom à l'entrée.")
+                raise ErreurCoffre(_texte("Donnez un nom à l'entrée."))
             entree["modifie"] = time.strftime("%Y-%m-%dT%H:%M")
             existante = next((x for x in self._entrees if x["id"] == entree.get("id")), None) if entree.get("id") else None
             if existante:
@@ -224,8 +243,8 @@ class Coffre:
 
 def _verifier_maitre(maitre):
     if len(maitre or "") < 10:
-        raise ErreurCoffre("Le mot de passe maître doit faire au moins 10 caractères. "
-                           "Une phrase de quelques mots est idéale.")
+        raise ErreurCoffre(_texte("Le mot de passe maître doit faire au moins 10 caractères. "
+                                  "Une phrase de quelques mots est idéale."))
 
 
 # ---------------------------------------------------------------------------
@@ -279,7 +298,7 @@ def _donnees_globales(octets):
 def _copier_windows(texte, effacer_apres=None):
     _, u32, _ = _api_windows()
     if not _ouvrir_presse_papiers():
-        raise ErreurCoffre("Le presse-papiers est occupé par un autre programme.")
+        raise ErreurCoffre(_texte("Le presse-papiers est occupé par un autre programme."))
     try:
         u32.EmptyClipboard()
         u32.SetClipboardData(CF_UNICODETEXT, _donnees_globales((texte + "\0").encode("utf-16-le")))

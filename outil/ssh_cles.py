@@ -53,6 +53,39 @@ CREATE_NO_WINDOW = systeme.SANS_FENETRE  # 0 hors de Windows
 DELAI = 25  # secondes pour une connexion
 _verrou = threading.Lock()
 
+_ESPAGNOL = {
+    "Serveur introuvable dans la liste.": "No se encontró el servidor en la lista.",
+    "Donnez un nom au serveur (lettres ou chiffres).": "Asigna un nombre al servidor (letras o números).",
+    "Donnez un nom au serveur.": "Asigna un nombre al servidor.",
+    "Adresse du serveur invalide (IP ou nom, sans espace).": "La dirección del servidor no es válida (IP o nombre, sin espacios).",
+    "Utilisateur invalide (lettres, chiffres, . _ -).": "El usuario no es válido (letras, números, . _ -).",
+    "Le port doit être entre 1 et 65535.": "El puerto debe estar entre 1 y 65535.",
+    "Le port doit être un nombre.": "El puerto debe ser un número.",
+    "La clé de ce serveur n'est plus sur ce PC.": "La clave de este servidor ya no está en este equipo.",
+    "Saisissez le mot de passe du serveur (il ne sert qu'une fois).": "Ingresa la contraseña del servidor (solo se usará una vez).",
+    "Connexion refusée : mot de passe ou utilisateur incorrect (ou connexion par mot de passe désactivée sur le serveur).":
+        "Conexión rechazada: la contraseña o el usuario son incorrectos (o el servidor desactivó el acceso con contraseña).",
+    "Le serveur refuse la connexion sur ce port : vérifiez le port SSH.":
+        "El servidor rechazó la conexión en este puerto: revisa el puerto SSH.",
+    "Adresse du serveur introuvable.": "No se encontró la dirección del servidor.",
+    "Le serveur ne répond pas : vérifiez l'adresse et le port.": "El servidor no responde: revisa la dirección y el puerto.",
+    "Erreur inconnue.": "Error desconocido.",
+    "Création de la clé impossible : {detail}": "No se pudo crear la clave: {detail}",
+    "L'empreinte du serveur a changé depuis la dernière connexion. Par prudence, rien n'a été fait.":
+        "La huella digital del servidor cambió desde la última conexión. Por seguridad, no se realizó ninguna acción.",
+    "Clé publique inattendue : rien n'a été envoyé.": "La clave pública no es la esperada: no se envió nada.",
+    "Le serveur ne répond pas (délai dépassé). Vérifiez l'adresse et le port.":
+        "El servidor no responde (se agotó el tiempo de espera). Revisa la dirección y el puerto.",
+    "Aucun terminal trouvé sur ce PC (par exemple : sudo apt install gnome-terminal).":
+        "No se encontró una terminal en este equipo (por ejemplo: sudo apt install gnome-terminal).",
+    "Un serveur s'appelle déjà « {nom} » : choisissez un autre nom.":
+        "Ya existe un servidor llamado «{nom}»: elige otro nombre.",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
 RE_HOTE = re.compile(r"^[A-Za-z0-9.\-:\[\]]{1,253}$")
 RE_UTILISATEUR = re.compile(r"^[A-Za-z0-9._\-]{1,64}$")
 
@@ -86,7 +119,7 @@ def _ecrire(serveurs):
 def _trouver(alias):
     serveur = next((s for s in lister() if s["alias"] == alias), None)
     if not serveur:
-        raise ErreurSSH("Serveur introuvable dans la liste.")
+        raise ErreurSSH(_i18n("Serveur introuvable dans la liste."))
     return serveur
 
 
@@ -96,7 +129,7 @@ def alias_depuis(nom):
                    .translate(str.maketrans("àâäéèêëîïôöùûüç", "aaaeeeeiioouuuc")))
     alias = re.sub(r"[^a-z0-9]+", "-", sans_accent).strip("-")
     if not alias:
-        raise ErreurSSH("Donnez un nom au serveur (lettres ou chiffres).")
+        raise ErreurSSH(_i18n("Donnez un nom au serveur (lettres ou chiffres)."))
     return alias[:40]
 
 
@@ -108,17 +141,17 @@ def _verifier(nom, hote, port, utilisateur):
     if ":" in hote and hote.count(":") == 1:
         hote = hote.split(":")[0]  # un port web collé avec l'IP n'est pas le port SSH
     if not nom:
-        raise ErreurSSH("Donnez un nom au serveur.")
+        raise ErreurSSH(_i18n("Donnez un nom au serveur."))
     if not RE_HOTE.match(hote):
-        raise ErreurSSH("Adresse du serveur invalide (IP ou nom, sans espace).")
+        raise ErreurSSH(_i18n("Adresse du serveur invalide (IP ou nom, sans espace)."))
     if not RE_UTILISATEUR.match(utilisateur):
-        raise ErreurSSH("Utilisateur invalide (lettres, chiffres, . _ -).")
+        raise ErreurSSH(_i18n("Utilisateur invalide (lettres, chiffres, . _ -)."))
     try:
         port = int(port or 22)
     except (TypeError, ValueError):
-        raise ErreurSSH("Le port doit être un nombre.") from None
+        raise ErreurSSH(_i18n("Le port doit être un nombre.")) from None
     if not 1 <= port <= 65535:
-        raise ErreurSSH("Le port doit être entre 1 et 65535.")
+        raise ErreurSSH(_i18n("Le port doit être entre 1 et 65535."))
     return nom, hote, port, utilisateur
 
 
@@ -211,22 +244,22 @@ def _executer(commande, secret=None, delai=DELAI):
                               text=True, encoding="utf-8", errors="replace", timeout=delai,
                               **systeme.options_sans_fenetre())
     except subprocess.TimeoutExpired:
-        raise ErreurSSH("Le serveur ne répond pas (délai dépassé). Vérifiez l'adresse et le port.") from None
+        raise ErreurSSH(_i18n("Le serveur ne répond pas (délai dépassé). Vérifiez l'adresse et le port.")) from None
 
 
 def _message_erreur(sortie):
     texte = (sortie or "").strip()
     if "Permission denied" in texte:
-        return "Connexion refusée : mot de passe ou utilisateur incorrect (ou connexion par mot de passe désactivée sur le serveur)."
+        return _i18n("Connexion refusée : mot de passe ou utilisateur incorrect (ou connexion par mot de passe désactivée sur le serveur).")
     if "Connection refused" in texte:
-        return "Le serveur refuse la connexion sur ce port : vérifiez le port SSH."
+        return _i18n("Le serveur refuse la connexion sur ce port : vérifiez le port SSH.")
     if "Could not resolve" in texte or "Name or service not known" in texte:
-        return "Adresse du serveur introuvable."
+        return _i18n("Adresse du serveur introuvable.")
     if "timed out" in texte.lower():
-        return "Le serveur ne répond pas : vérifiez l'adresse et le port."
+        return _i18n("Le serveur ne répond pas : vérifiez l'adresse et le port.")
     if "REMOTE HOST IDENTIFICATION HAS CHANGED" in texte:
-        return "L'empreinte du serveur a changé depuis la dernière connexion. Par prudence, rien n'a été fait."
-    return texte.splitlines()[-1] if texte else "Erreur inconnue."
+        return _i18n("L'empreinte du serveur a changé depuis la dernière connexion. Par prudence, rien n'a été fait.")
+    return texte.splitlines()[-1] if texte else _i18n("Erreur inconnue.")
 
 
 def _base_ssh(serveur):
@@ -244,7 +277,7 @@ def _cle_publique(serveur):
 def tester(alias):
     serveur = _trouver(alias)
     if not os.path.exists(serveur["cle"]):
-        raise ErreurSSH("La clé de ce serveur n'est plus sur ce PC.")
+        raise ErreurSSH(_i18n("La clé de ce serveur n'est plus sur ce PC."))
     commande = _base_ssh(serveur)
     commande[1:1] = ["-i", serveur["cle"], "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes"]
     r = _executer(commande + ["echo ok; hostname"])
@@ -260,12 +293,12 @@ def creer(nom, hote, port, utilisateur, mot_de_passe):
     vérifier que la connexion se fait sans lui."""
     nom, hote, port, utilisateur = _verifier(nom, hote, port, utilisateur)
     if not mot_de_passe:
-        raise ErreurSSH("Saisissez le mot de passe du serveur (il ne sert qu'une fois).")
+        raise ErreurSSH(_i18n("Saisissez le mot de passe du serveur (il ne sert qu'une fois)."))
     alias = alias_depuis(nom)
     with _verrou:
         serveurs = lister()
         if any(s["alias"] == alias for s in serveurs):
-            raise ErreurSSH(f"Un serveur s'appelle déjà « {alias} » : choisissez un autre nom.")
+            raise ErreurSSH(_i18n("Un serveur s'appelle déjà « {nom} » : choisissez un autre nom.", nom=alias))
         cle = os.path.join(DOSSIER_SSH, f"mesoutils_{alias}")
         serveur = {"nom": nom, "alias": alias, "hote": hote, "port": port, "utilisateur": utilisateur,
                    "cle": cle, "cree_le": _maintenant()}
@@ -275,7 +308,8 @@ def creer(nom, hote, port, utilisateur, mot_de_passe):
         if cree_ici:
             r = _executer([SSH_KEYGEN, "-q", "-t", "ed25519", "-N", "", "-C", f"mes-outils {alias}", "-f", cle])
             if r.returncode != 0:
-                raise ErreurSSH("Création de la clé impossible : " + _message_erreur(r.stderr))
+                raise ErreurSSH(_i18n("Création de la clé impossible : {detail}",
+                                      detail=_message_erreur(r.stderr)))
         try:
             _deposer(serveur, mot_de_passe)
         except ErreurSSH:
@@ -297,7 +331,7 @@ def _deposer(serveur, mot_de_passe):
     """Déposer la clé publique sur le serveur, avec le mot de passe."""
     publique = _cle_publique(serveur)
     if not re.match(r"^ssh-ed25519 [A-Za-z0-9+/=]+ [A-Za-z0-9 ._\-]+$", publique):
-        raise ErreurSSH("Clé publique inattendue : rien n'a été envoyé.")
+        raise ErreurSSH(_i18n("Clé publique inattendue : rien n'a été envoyé."))
     # Ajout sans doublon, droits stricts : sshd ignore un authorized_keys
     # trop ouvert.
     distant = ("umask 077; mkdir -p ~/.ssh && touch ~/.ssh/authorized_keys && "
@@ -356,7 +390,7 @@ def ouvrir_terminal(alias):
     serveur = _trouver(alias)
     if not systeme.WINDOWS:
         if not systeme.ouvrir_terminal(commande=[SSH, alias], titre=serveur["nom"]):
-            raise ErreurSSH("Aucun terminal trouvé sur ce PC (par exemple : sudo apt install gnome-terminal).")
+            raise ErreurSSH(_i18n("Aucun terminal trouvé sur ce PC (par exemple : sudo apt install gnome-terminal)."))
         return {"ok": True}
     wt = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Microsoft", "WindowsApps", "wt.exe")
     if os.path.exists(wt):

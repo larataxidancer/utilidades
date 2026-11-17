@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import webbrowser
 
+import config
 import systeme
 
 SANS_FENETRE = systeme.SANS_FENETRE  # 0 hors de Windows
@@ -28,6 +29,34 @@ PROJET_VALIDE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 ETIQUETTE_PROJET = "com.docker.compose.project"
 ETIQUETTE_SERVICE = "com.docker.compose.service"
 ADRESSE_DOCKER = "https://www.docker.com/products/docker-desktop/"
+
+_ESPAGNOL = {
+    "Docker n'est pas installé.": "Docker no está instalado.",
+    "Docker ne répond pas (délai dépassé).": "Docker no responde (se agotó el tiempo de espera).",
+    "Docker Desktop n'est pas démarré.": "Docker Desktop no está iniciado.",
+    "Le service Docker n'est pas démarré (sudo systemctl start docker).":
+        "El servicio Docker no está iniciado (sudo systemctl start docker).",
+    "Accès refusé à Docker : ajoutez votre compte au groupe docker "
+    "(sudo usermod -aG docker $USER), puis rouvrez la session.":
+        "Acceso denegado a Docker: agrega tu cuenta al grupo docker "
+        "(sudo usermod -aG docker $USER) y vuelve a iniciar sesión.",
+    "Identifiant de conteneur invalide.": "El identificador del contenedor no es válido.",
+    "Nom de projet invalide.": "El nombre del proyecto no es válido.",
+    "Arrêtez d'abord le conteneur.": "Primero detén el contenedor.",
+    "Numéro de port invalide.": "El número de puerto no es válido.",
+    "Docker Desktop est introuvable sur ce PC.": "No se encontró Docker Desktop en este equipo.",
+    "Aucun conteneur dans ce projet.": "No hay contenedores en este proyecto.",
+    "Docker : {detail}": "Docker: {detail}",
+    "erreur {code}": "error {code}",
+    "Conteneur démarré": "Contenedor iniciado",
+    "Conteneur arrêté": "Contenedor detenido",
+    "Conteneur redémarré": "Contenedor reiniciado",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
 
 
 class ErreurDocker(Exception):
@@ -64,12 +93,12 @@ def _docker(*arguments, delai=30):
     """Lance « docker <arguments> » ; rend (code, sortie, erreurs)."""
     programme = chemin_docker()
     if not programme:
-        raise ErreurDocker("Docker n'est pas installé.")
+        raise ErreurDocker(_i18n("Docker n'est pas installé."))
     try:
         r = subprocess.run([programme, *arguments], capture_output=True, timeout=delai,
                            **systeme.options_sans_fenetre())
     except subprocess.TimeoutExpired:
-        raise ErreurDocker("Docker ne répond pas (délai dépassé).") from None
+        raise ErreurDocker(_i18n("Docker ne répond pas (délai dépassé).")) from None
     sortie = (r.stdout or b"").decode("utf-8", errors="replace")
     erreurs = (r.stderr or b"").decode("utf-8", errors="replace")
     return r.returncode, sortie, erreurs
@@ -80,7 +109,8 @@ def _docker_ok(*arguments, delai=30):
     code, sortie, erreurs = _docker(*arguments, delai=delai)
     if code != 0:
         lignes = [x.strip() for x in (erreurs or sortie).splitlines() if x.strip()]
-        raise ErreurDocker("Docker : " + (lignes[0] if lignes else f"erreur {code}"))
+        detail = lignes[0] if lignes else _i18n("erreur {code}", code=code)
+        raise ErreurDocker(_i18n("Docker : {detail}", detail=detail))
     return sortie
 
 
@@ -106,11 +136,11 @@ def message_linux(erreurs, desktop=False):
     """Pourquoi Docker ne répond pas sous Linux : droits sur la socket, ou
     service arrêté."""
     if "permission denied" in (erreurs or "").lower():
-        return ("Accès refusé à Docker : ajoutez votre compte au groupe docker "
-                "(sudo usermod -aG docker $USER), puis rouvrez la session.")
+        return _i18n("Accès refusé à Docker : ajoutez votre compte au groupe docker "
+                     "(sudo usermod -aG docker $USER), puis rouvrez la session.")
     if desktop:
-        return "Docker Desktop n'est pas démarré."
-    return "Le service Docker n'est pas démarré (sudo systemctl start docker)."
+        return _i18n("Docker Desktop n'est pas démarré.")
+    return _i18n("Le service Docker n'est pas démarré (sudo systemctl start docker).")
 
 
 # ---------------------------------------------------------------------------
@@ -203,23 +233,23 @@ def grouper(conteneurs):
 def valider_id(valeur):
     valeur = str(valeur or "").strip()
     if not ID_VALIDE.match(valeur):
-        raise ValueError("Identifiant de conteneur invalide.")
+        raise ValueError(_i18n("Identifiant de conteneur invalide."))
     return valeur
 
 
 def valider_projet(valeur):
     valeur = str(valeur or "").strip()
     if not PROJET_VALIDE.match(valeur):
-        raise ValueError("Nom de projet invalide.")
+        raise ValueError(_i18n("Nom de projet invalide."))
     return valeur
 
 
 def _demarre():
     e = etat()
     if not e["installe"]:
-        raise ErreurDocker("Docker n'est pas installé.")
+        raise ErreurDocker(_i18n("Docker n'est pas installé."))
     if not e["demarre"]:
-        raise ErreurDocker(e.get("erreur") or "Docker Desktop n'est pas démarré.")
+        raise ErreurDocker(e.get("erreur") or _i18n("Docker Desktop n'est pas démarré."))
     return e
 
 
@@ -242,7 +272,7 @@ def _action(commande, message):
         _demarre()
         ident = valider_id(d.get("id"))
         _docker_ok(commande, ident, delai=90)
-        return {"ok": True, "message": message}
+        return {"ok": True, "message": _i18n(message)}
     return faire
 
 
@@ -252,7 +282,7 @@ def supprimer(d):
     ident = valider_id(d.get("id"))
     en_marche = _docker_ok("inspect", "--format", "{{.State.Running}}", ident, delai=20).strip().lower()
     if en_marche != "false":
-        raise ErreurDocker("Arrêtez d'abord le conteneur.")
+        raise ErreurDocker(_i18n("Arrêtez d'abord le conteneur."))
     _docker_ok("rm", ident, delai=60)
     return {"ok": True}
 
@@ -263,7 +293,8 @@ def journal(d):
     code, sortie, erreurs = _docker("logs", "--tail", "300", "--timestamps", ident, delai=20)
     if code != 0:
         lignes = [x for x in erreurs.splitlines() if x.strip()]
-        raise ErreurDocker("Docker : " + (lignes[0] if lignes else f"erreur {code}"))
+        detail = lignes[0] if lignes else _i18n("erreur {code}", code=code)
+        raise ErreurDocker(_i18n("Docker : {detail}", detail=detail))
     # docker logs renvoie la sortie d'erreur du conteneur sur stderr : on
     # remet tout dans l'ordre de l'horodatage.
     lignes = sorted([x for x in (sortie + "\n" + erreurs).splitlines() if x.strip()], key=lambda x: x[:35])
@@ -280,7 +311,7 @@ def projet(action):
             ids = _docker_ok("ps", "-a", "-q", "--filter", f"label={ETIQUETTE_PROJET}={nom}", delai=20).split()
             ids = [valider_id(i) for i in ids]
             if not ids:
-                raise ErreurDocker("Aucun conteneur dans ce projet.")
+                raise ErreurDocker(_i18n("Aucun conteneur dans ce projet."))
             _docker_ok(action, *ids, delai=180)
         return {"ok": True}
     return faire
@@ -302,9 +333,9 @@ def ouvrir(d):
     try:
         port = int(d.get("port"))
     except (TypeError, ValueError):
-        raise ValueError("Numéro de port invalide.") from None
+        raise ValueError(_i18n("Numéro de port invalide.")) from None
     if not 1 <= port <= 65535:
-        raise ValueError("Numéro de port invalide.")
+        raise ValueError(_i18n("Numéro de port invalide."))
     webbrowser.open(f"http://localhost:{port}/")
     return {"ok": True}
 
@@ -312,7 +343,7 @@ def ouvrir(d):
 def lancer_desktop(d):
     chemin = chemin_desktop()
     if not chemin:
-        raise ErreurDocker("Docker Desktop est introuvable sur ce PC.")
+        raise ErreurDocker(_i18n("Docker Desktop est introuvable sur ce PC."))
     if systeme.WINDOWS:
         systeme.ouvrir(chemin)
     elif shutil.which("systemctl"):

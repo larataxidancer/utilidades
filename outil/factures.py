@@ -39,7 +39,7 @@ import systeme
 
 NOM = "factures"
 TYPES = ("devis", "facture", "avoir")
-DEVISES = {"EUR": ("€", 2), "USD": ("$", 2), "CAD": ("$", 2), "MGA": ("Ar", 0)}
+DEVISES = {"EUR": ("€", 2), "USD": ("$", 2), "CAD": ("$", 2), "COP": ("COP", 2), "MGA": ("Ar", 0)}
 MODES_TVA = ("assujetti", "franchise", "libre")
 MENTION_293B = "TVA non applicable, art. 293 B du CGI"
 
@@ -132,6 +132,53 @@ _ANGLAIS = {
     "Total avant taxes": "Total before tax", "Taxable": "Taxable", "Oui": "Yes", "Non": "No",
     "{nom} ({t} %)": "{nom} ({t}%)", "N° {nom} : {numero}": "{nom} No.: {numero}",
 }
+_ESPAGNOL = {
+    "Devis": "Cotización", "Facture": "Factura", "Avoir": "Nota de crédito",
+    "DEVIS": "COTIZACIÓN", "FACTURE": "FACTURA", "AVOIR": "NOTA DE CRÉDITO",
+    "N°": "N.º", "Date": "Fecha", "Échéance": "Vencimiento", "Valable jusqu'au": "Válido hasta",
+    "Destinataire": "Destinatario", "Désignation": "Descripción", "Qté": "Cant.", "Unité": "Unidad",
+    "Prix unit. HT": "Precio unitario antes de impuestos", "TVA": "IVA", "Total HT": "Total antes de impuestos",
+    "Montant": "Importe", "Prix unit.": "Precio unitario",
+    "Sous-total HT": "Subtotal antes de impuestos", "Sous-total": "Subtotal",
+    "Remise": "Descuento", "Remise ({p} %)": "Descuento ({p} %)", "TVA {t} %": "IVA {t} %",
+    "Total TTC": "Total con impuestos", "Total": "Total", "Net à payer": "Total a pagar",
+    "Total de l'avoir": "Total de la nota de crédito",
+    "Avoir sur la facture {numero} du {date}.": "Nota de crédito de la factura {numero} del {date}.",
+    "Prestation : {texte}": "Servicio: {texte}",
+    "Conditions de paiement : à réception.": "Condiciones de pago: a la recepción.",
+    "Conditions de paiement : {n} jours, soit au plus tard le {date}.": "Condiciones de pago: {n} días, hasta el {date}.",
+    "Règlement": "Datos de pago", "IBAN": "IBAN", "BIC": "BIC",
+    "Devis valable jusqu'au {date}.": "Cotización válida hasta el {date}.",
+    "Bon pour accord (date et signature)": "Aprobado (fecha y firma)",
+    "BROUILLON": "BORRADOR", "à l'émission": "al emitir",
+    "Tél.": "Tel.", "Page": "Página",
+    "Facture en retard": "Factura vencida",
+    "{projet} – du {debut} au {fin}": "{projet} – del {debut} al {fin}",
+    "{numero} · {client} : {reste} à encaisser (échéance du {date})":
+        "{numero} · {client}: {reste} pendiente de cobro (vence el {date})",
+    "Facture {numero}": "Factura {numero}", "Devis {numero}": "Cotización {numero}",
+    "Avoir {numero}": "Nota de crédito {numero}",
+    "Bonjour,": "Hola,", "Cordialement,": "Saludos,",
+    "Veuillez trouver ci-joint la facture {numero} d'un montant de {montant}, à régler au plus tard le {date}.":
+        "Adjunto encontrarás la factura {numero} por {montant}, pagadera a más tardar el {date}.",
+    "Veuillez trouver ci-joint la facture {numero} d'un montant de {montant}.":
+        "Adjunto encontrarás la factura {numero} por {montant}.",
+    "Veuillez trouver ci-joint notre devis {numero} d'un montant de {montant}, valable jusqu'au {date}.":
+        "Adjunto encontrarás nuestra cotización {numero} por {montant}, válida hasta el {date}.",
+    "Veuillez trouver ci-joint l'avoir {numero} d'un montant de {montant}.":
+        "Adjunto encontrarás la nota de crédito {numero} por {montant}.",
+    "Type": "Tipo", "Numéro": "Número", "Client": "Cliente", "TTC": "Con impuestos", "HT": "Antes de impuestos",
+    "Payé": "Pagado", "Reste": "Pendiente", "Statut": "Estado", "Devise": "Moneda",
+    "Brouillon": "Borrador", "Envoyé": "Enviado", "Envoyée": "Enviada", "Accepté": "Aceptado",
+    "Refusé": "Rechazado", "Facturé": "Facturado", "Expiré": "Vencido", "Payée partiellement": "Pagada parcialmente",
+    "Payée": "Pagada", "En retard": "Vencida", "Annulée": "Anulada", "Émis": "Emitido",
+    PENALITES_FR: "Pago tardío: intereses equivalentes a tres veces la tasa legal y una compensación fija de 40 € "
+                  "por gastos de cobro (art. L441-10 del Código de Comercio francés). No se aplica descuento "
+                  "por pago anticipado.",
+    MENTION_293B: "IVA no aplicable, art. 293 B del Código General de Impuestos francés.",
+    "Total avant taxes": "Total antes de impuestos", "Taxable": "Gravable", "Oui": "Sí", "Non": "No",
+    "{nom} ({t} %)": "{nom} ({t} %)", "N° {nom} : {numero}": "N.º {nom}: {numero}",
+}
 
 LIBELLES_ETATS = {
     "brouillon": "Brouillon", "envoye": "Envoyé", "envoyee": "Envoyée", "accepte": "Accepté", "refuse": "Refusé",
@@ -141,7 +188,8 @@ LIBELLES_ETATS = {
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if config.langue() == "en" else fr
+    langue = config.langue()
+    texte = (_ANGLAIS if langue == "en" else _ESPAGNOL if langue == "es" else {}).get(fr, fr)
     return texte.format(**valeurs) if valeurs else texte
 
 
@@ -227,7 +275,8 @@ def formater_montant(d, devise, langue=None):
     if langue == "en":
         nombre = ",".join(groupes) + ("." + fraction if fraction else "")
         return f"{signe}{symbole}{nombre}" if len(symbole) == 1 else f"{signe}{nombre} {symbole}"
-    nombre = "\u202f".join(groupes) + ("," + fraction if fraction else "")
+    separateur = "." if langue == "es" else "\u202f"
+    nombre = separateur.join(groupes) + ("," + fraction if fraction else "")
     return f"{signe}{nombre}\u00a0{symbole}"
 
 
@@ -1273,6 +1322,7 @@ def html_document(doc, d, jour=None):
         identifiants += [_e(_texte("N° {nom} : {numero}", nom=nom_taxe(t["code"]), numero=t["numero"]))
                          for t in totaux["tva"] if t.get("numero")]
     contacts = [x for x in (entreprise.get("email"), (_texte("Tél.") + " " + entreprise["telephone"]) if entreprise.get("telephone") else "") if x]
+    contacts_html = " · ".join(f"<span class='nw'>{_e(x)}</span>" for x in contacts)
     client = doc.get("client") or {}
 
     entetes = [f"<th>{_e(_texte('Désignation'))}</th>", f"<th class='num'>{_e(_texte('Qté'))}</th>",
@@ -1361,14 +1411,14 @@ def html_document(doc, d, jour=None):
                   "color: #8a8a93; vertical-align: top; padding-top: 3mm; } }")
 
     morceaux = [
-        "<!doctype html><html lang='" + ("en" if config.langue() == "en" else "fr") + "'><head><meta charset='utf-8'>",
+        "<!doctype html><html lang='" + {"en": "en", "es": "es"}.get(config.langue(), "fr") + "'><head><meta charset='utf-8'>",
         f"<title>{_e(doc.get('numero') or _texte(titre.capitalize()))}</title><style>{STYLE_PDF}{style_pied}</style></head><body>",
         f"<div class='filigrane'>{_e(_texte('BROUILLON'))}</div>" if brouillon else "",
         "<div class='entete'><div class='emetteur'>",
         f"<img src='{logo}' alt=''>" if logo else "",
         f"<div class='nom'>{_e(entreprise.get('nom'))}</div>",
         f"<div>{_multi(entreprise.get('adresse'))}</div>" if entreprise.get("adresse") else "",
-        f"<div>{' · '.join(f"<span class='nw'>{_e(x)}</span>" for x in contacts)}</div>" if contacts else "",
+        f"<div>{contacts_html}</div>" if contacts_html else "",
         f"<div>{'<br>'.join(identifiants)}</div>" if identifiants else "",
         "</div><div class='titre'>",
         f"<h1>{_e(_texte(titre))}</h1><table>",

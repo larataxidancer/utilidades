@@ -66,7 +66,7 @@ class TestNotesRapides(unittest.TestCase):
                              [premiere["id"], seconde["id"]])
             self.assertEqual(notes_rapides.supprimer({"id": premiere["id"]}), {"supprime": True})
             self.assertEqual([note["id"] for note in notes_rapides.lister()["notes"]], [seconde["id"]])
-            with self.assertRaisesRegex(ValueError, "introuvable"):
+            with self.assertRaisesRegex(ValueError, "no encontrada"):
                 notes_rapides.supprimer({"id": premiere["id"]})
 
 
@@ -90,7 +90,7 @@ class TestRoutesNotesRapides(ServeurTest):
                 "note": {"titre": "", "contenu": "texte", "categorie": "note"},
             })
             self.assertEqual(statut, 400)
-            self.assertEqual(resultat["erreur"], "Donnez un titre à la note rapide.")
+            self.assertEqual(resultat["erreur"], "Debes indicar un título para la nota rápida.")
 
 
 if __name__ == "__main__":

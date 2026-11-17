@@ -37,6 +37,41 @@
     "Votre métier : {p}": "Your role: {p}",
     "Toujours présentes : Accueil, Applications, Réglages.": "Always there: Home, Apps, Settings.",
   });
+  I18N.ajouterEspanol({
+    "Applications": "Aplicaciones",
+    "Choisissez les applications dont vous vous servez : les autres disparaissent du menu, leurs données restent.":
+      "Elige las aplicaciones que usas: las demás desaparecen del menú, pero sus datos se conservan.",
+    "Activer et désactiver les applications, comme dans un ERP.": "Activa y desactiva aplicaciones, como en un ERP.",
+    "Toutes": "Todas", "Actives": "Activas", "Inactives": "Inactivas",
+    "Activée": "Activada", "Activer": "Activar", "Désactiver": "Desactivar",
+    "{n} actives": "{n} activas", "Repartir d'un métier…": "Empezar desde un perfil…",
+    "Les applications de ce métier remplacent votre sélection actuelle. Vos données ne sont pas touchées.":
+      "Las aplicaciones de este perfil reemplazarán tu selección actual. Tus datos no se modificarán.",
+    "Appliquer": "Aplicar", "Application activée": "Aplicación activada", "Application désactivée": "Aplicación desactivada",
+    "Applications mises à jour": "Aplicaciones actualizadas",
+    "Bienvenue dans Mes outils": "Te damos la bienvenida a Mes outils",
+    "Votre tableau de bord de travail, sur ce PC. Trois étapes pour le préparer.":
+      "Tu panel de trabajo en este equipo. Configúralo en tres pasos.",
+    "Comment vous appelle-t-on ?": "¿Cómo te llamas?", "Prénom": "Nombre", "Langue": "Idioma",
+    "Quel est votre métier ?": "¿A qué te dedicas?",
+    "Il sert à cocher d'office les applications utiles. Vous pourrez tout changer ensuite.":
+      "Esto sirve para seleccionar las aplicaciones que te pueden ser útiles. Después podrás cambiarlo todo.",
+    "Vos applications": "Tus aplicaciones",
+    "Cochez celles dont vous vous servez. Les autres restent disponibles dans la page Applications.":
+      "Marca las que usas. Las demás seguirán disponibles en la página Aplicaciones.",
+    "Retour": "Volver", "Continuer": "Continuar", "Commencer": "Comenzar", "Passer": "Omitir",
+    "Étape {n} sur 3": "Paso {n} de 3", "Tout cocher": "Marcar todas", "Tout décocher": "Desmarcar todas",
+    "Freelance": "Profesional independiente", "Clients, devis, factures, temps passé.": "Clientes, cotizaciones, facturas y tiempo dedicado.",
+    "Assistant(e) virtuel(le)": "Asistente virtual", "Plusieurs clients, tâches, messages types.": "Varios clientes, tareas y mensajes modelo.",
+    "Assistant(e) de direction": "Asistente de dirección", "Agenda, réunions, déplacements, documents.": "Agenda, reuniones, viajes y documentos.",
+    "Développeur": "Desarrollador", "Projets, serveurs, GitHub, outils techniques.": "Proyectos, servidores, GitHub y herramientas técnicas.",
+    "Je choisis moi-même": "Lo elijo por mi cuenta", "Partir de zéro et cocher ce qui sert.": "Empezar desde cero y marcar lo que necesito.",
+    "Clients et ventes": "Clientes y ventas", "Organisation": "Organización",
+    "Votre métier : {p}": "Tu perfil: {p}",
+    "Toujours présentes : Accueil, Applications, Réglages.": "Siempre disponibles: Inicio, Aplicaciones y Configuración.",
+    "Français": "Francés",
+    "Au quotidien": "Día a día", "Développement": "Desarrollo", "Petits outils": "Herramientas pequeñas", "Mes outils": "Mis herramientas",
+  });
 
   const style = document.createElement("style");
   style.textContent = `

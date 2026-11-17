@@ -64,10 +64,38 @@ _ANGLAIS = {
     "A expiré le {date}.": "Expired on {date}.",
     "Non classé": "Unfiled",
 }
+_ESPANOL = {
+    "Document qui expire : {titre}": "Documento próximo a vencer: {titre}",
+    "Document expiré : {titre}": "Documento vencido: {titre}",
+    "Expire aujourd'hui ({date}).": "Vence hoy ({date}).",
+    "Expire demain ({date}).": "Vence mañana ({date}).",
+    "Expire le {date}, dans {n} jours.": "Vence el {date}, en {n} días.",
+    "A expiré le {date}.": "Venció el {date}.",
+    "Non classé": "Sin clasificar",
+    "Document introuvable dans la liste.": "No se encontró el documento en la lista.",
+    "Date du document": "Fecha del documento", "Date d'expiration": "Fecha de vencimiento",
+    "Nom de client invalide pour le classeur.": "El nombre del cliente no es válido para el archivador.",
+    "{nom} invalide.": "{nom} no es válida.",
+    "Type de document inconnu.": "Tipo de documento desconocido.",
+    "L'expiration doit être après la date du document.": "La fecha de vencimiento debe ser posterior a la fecha del documento.",
+    "Aucun fichier choisi.": "No se seleccionó ningún archivo.",
+    "Chemin invalide : {chemin}": "La ruta no es válida: {chemin}",
+    "Fichier introuvable : {chemin}": "No se encontró el archivo: {chemin}",
+    "Choisissez un dossier.": "Selecciona una carpeta.",
+    "Choisissez un fichier.": "Selecciona un archivo.",
+    "Trop de fichiers d'un coup (maximum {maximum}).": "Se seleccionaron demasiados archivos a la vez (máximo {maximum}).",
+    "Seuls les fichiers peuvent être copiés dans le classeur.": "Solo se pueden copiar archivos al archivador.",
+    "Indiquez un titre.": "Escribe un título.",
+    "Ce fichier est déjà dans la liste : {titre}": "Este archivo ya está en la lista: {titre}",
+    "Introuvable : le fichier a été déplacé ou supprimé. Utilisez « Retrouver… ».": "No se encontró el archivo: se movió o se eliminó. Usa «Buscar…».",
+    "Introuvable : le dossier du document n'existe plus.": "No se encontró la carpeta: ya no existe.",
+    "Choisir des documents": "Seleccionar documentos",
+}
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if config.langue() == "en" else fr
+    langue = config.langue()
+    texte = _ANGLAIS.get(fr, fr) if langue == "en" else _ESPANOL.get(fr, fr) if langue == "es" else fr
     return texte.format(**valeurs) if valeurs else texte
 
 
@@ -103,7 +131,7 @@ def _trouver(d, identifiant):
     for f in d["fiches"]:
         if f.get("id") == identifiant:
             return f
-    raise ValueError("Document introuvable dans la liste.")
+    raise ValueError(_texte("Document introuvable dans la liste."))
 
 
 # ---------------------------------------------------------------------------
@@ -144,7 +172,7 @@ def _copier_dans_classeur(source, rubrique):
         return source  # déjà rangé dans le classeur
     cible_dossier = os.path.join(racine, nom_de_dossier(rubrique))
     if not _dans(cible_dossier, racine):
-        raise ValueError("Nom de client invalide pour le classeur.")
+        raise ValueError(_texte("Nom de client invalide pour le classeur."))
     os.makedirs(cible_dossier, exist_ok=True)
     base, ext = os.path.splitext(os.path.basename(source))
     cible = os.path.join(cible_dossier, base + ext)
@@ -170,7 +198,7 @@ def _date(valeur, nom):
     try:
         return datetime.date.fromisoformat(valeur[:10]).isoformat()
     except ValueError:
-        raise ValueError(f"{nom} invalide.") from None
+        raise ValueError(_texte("{nom} invalide.", nom=_texte(nom))) from None
 
 
 def _etiquettes(valeur):
@@ -203,7 +231,7 @@ def _champs(d, existant=None):
         f["titre"] = _court(d["titre"], MAX_TITRE)
     if "type" in d:
         if d["type"] not in TYPES:
-            raise ValueError("Type de document inconnu.")
+            raise ValueError(_texte("Type de document inconnu."))
         f["type"] = d["type"]
     if "client" in d:
         f["client"] = _court(d["client"], MAX_CLIENT)
@@ -222,7 +250,7 @@ def _champs(d, existant=None):
     if "note" in d:
         f["note"] = str(d["note"] or "").strip()[:MAX_NOTE]
     if f.get("expiration") and f.get("date_document") and f["expiration"] < f["date_document"]:
-        raise ValueError("L'expiration doit être après la date du document.")
+        raise ValueError(_texte("L'expiration doit être après la date du document."))
     return f
 
 
@@ -230,18 +258,18 @@ def _chemin_valide(chemin, genre=None):
     """Un chemin absolu qui existe (fichier ou dossier). Renvoie (chemin, genre)."""
     chemin = str(chemin or "").strip().strip('"')
     if not chemin:
-        raise ValueError("Aucun fichier choisi.")
+        raise ValueError(_texte("Aucun fichier choisi."))
     chemin = os.path.normpath(chemin)
     if not os.path.isabs(chemin):
-        raise ValueError(f"Chemin invalide : {chemin}")
+        raise ValueError(_texte("Chemin invalide : {chemin}", chemin=chemin))
     if os.path.isfile(chemin):
         trouve = "fichier"
     elif os.path.isdir(chemin):
         trouve = "dossier"
     else:
-        raise ValueError(f"Fichier introuvable : {chemin}")
+        raise ValueError(_texte("Fichier introuvable : {chemin}", chemin=chemin))
     if genre and genre != trouve:
-        raise ValueError("Choisissez un dossier." if genre == "dossier" else "Choisissez un fichier.")
+        raise ValueError(_texte("Choisissez un dossier." if genre == "dossier" else "Choisissez un fichier."))
     return chemin, trouve
 
 
@@ -296,9 +324,9 @@ def ajouter(d):
     if isinstance(chemins, str):
         chemins = [chemins]
     if not isinstance(chemins, list) or not chemins:
-        raise ValueError("Aucun fichier choisi.")
+        raise ValueError(_texte("Aucun fichier choisi."))
     if len(chemins) > MAX_AJOUT:
-        raise ValueError(f"Trop de fichiers d'un coup (maximum {MAX_AJOUT}).")
+        raise ValueError(_texte("Trop de fichiers d'un coup (maximum {maximum}).", maximum=MAX_AJOUT))
     genre = d.get("genre") if d.get("genre") in GENRES else None
     communs = _champs({k: v for k, v in d.items() if k not in ("titre", "chemins", "genre", "copier")},
                       {"type": "autre", "client": "", "contact_id": None, "projet": "", "etiquettes": [],
@@ -306,7 +334,7 @@ def ajouter(d):
     copier = bool(d.get("copier"))
     valides = [_chemin_valide(c, genre) for c in chemins]  # tout est vérifié avant d'écrire
     if copier and any(g == "dossier" for _, g in valides):
-        raise ValueError("Seuls les fichiers peuvent être copiés dans le classeur.")
+        raise ValueError(_texte("Seuls les fichiers peuvent être copiés dans le classeur."))
     with _verrou:
         donnees = _lire()
         connus = {os.path.normcase(f.get("chemin") or "") for f in donnees["fiches"]}
@@ -341,7 +369,7 @@ def modifier(d):
         f = _trouver(donnees, d.get("id"))
         nouveau = _champs({k: v for k, v in d.items() if k not in ("id", "chemin", "genre", "copie", "ajoute")}, f)
         if not nouveau.get("titre"):
-            raise ValueError("Indiquez un titre.")
+            raise ValueError(_texte("Indiquez un titre."))
         f.clear()
         f.update(nouveau)
         _ecrire(donnees)
@@ -367,7 +395,7 @@ def retrouver(d):
         autre = next((x for x in donnees["fiches"] if x is not f
                       and os.path.normcase(x.get("chemin") or "") == os.path.normcase(chemin)), None)
         if autre:
-            raise ValueError(f"Ce fichier est déjà dans la liste : {autre.get('titre')}")
+            raise ValueError(_texte("Ce fichier est déjà dans la liste : {titre}", titre=autre.get("titre")))
         f["chemin"] = chemin
         _ecrire(donnees)
         return _vue(f)
@@ -377,7 +405,7 @@ def _fiche_existante(identifiant):
     with _verrou:
         f = _trouver(_lire(), identifiant)
     if not _existe(f):
-        raise ValueError("Introuvable : le fichier a été déplacé ou supprimé. Utilisez « Retrouver… ».")
+        raise ValueError(_texte("Introuvable : le fichier a été déplacé ou supprimé. Utilisez « Retrouver… »."))
     return f
 
 
@@ -402,7 +430,7 @@ def ouvrir_dossier(d):
     elif os.path.isdir(os.path.dirname(chemin)):
         systeme.ouvrir(os.path.dirname(chemin))
     else:
-        raise ValueError("Introuvable : le dossier du document n'existe plus.")
+        raise ValueError(_texte("Introuvable : le dossier du document n'existe plus."))
     return {"ok": True}
 
 
@@ -417,7 +445,7 @@ def choisir_fichiers(d):
         with _verrou:
             depart = _lire().get("dernier_dossier") or ""
     try:
-        chemins = systeme.choisir_fichiers(str(d.get("titre") or "Choisir des documents")[:120], depart,
+        chemins = systeme.choisir_fichiers(str(d.get("titre") or _texte("Choisir des documents"))[:120], depart,
                                            multi=d.get("multi") is not False,
                                            filtre=str(d.get("filtre") or systeme.TOUS_LES_FICHIERS)[:200])
     except RuntimeError as erreur:  # Linux sans zenity ni kdialog

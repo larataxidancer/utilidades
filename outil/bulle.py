@@ -59,7 +59,7 @@ PRESENCES = ("bulle_icone", "bulle", "icone")
 ANGLAIS = {
     "Ouvrir le tableau de bord": "Open the dashboard", "Note rapide": "Quick note", "Mails": "Mail",
     "non lus": "unread", "Agenda": "Calendar", "Notes": "Notes", "Mots de passe": "Passwords",
-    "Projets": "Projects", "GitHub": "GitHub", "en échec": "failing", "Serveurs locaux": "Local servers",
+    "Projets": "Projects", "Missions": "Missions", "GitHub": "GitHub", "en échec": "failing", "Serveurs locaux": "Local servers",
     "Serveurs Odoo": "Odoo servers", "Ouvrir": "Open", "Arrêter": "Stop", "Démarrer": "Start",
     "Extraits": "Snippets", "Presse-papiers": "Clipboard", "(vide)": "(empty)",
     "Arrêter le chrono": "Stop the timer", "Démarrer un chrono…": "Start a timer…",
@@ -84,7 +84,7 @@ ANGLAIS = {
 ESPAGNOL = {
     "Ouvrir le tableau de bord": "Abrir el panel", "Note rapide": "Nota rápida", "Mails": "Correo",
     "non lus": "sin leer", "Agenda": "Agenda", "Notes": "Notas", "Mots de passe": "Contraseñas",
-    "Projets": "Proyectos", "GitHub": "GitHub", "en échec": "con errores", "Serveurs locaux": "Servidores locales",
+    "Projets": "Proyectos", "Missions": "Misiones", "GitHub": "GitHub", "en échec": "con errores", "Serveurs locaux": "Servidores locales",
     "Serveurs Odoo": "Servidores Odoo", "Ouvrir": "Abrir", "Arrêter": "Detener", "Démarrer": "Iniciar",
     "Extraits": "Fragmentos", "Presse-papiers": "Portapapeles", "(vide)": "(vacío)",
     "Arrêter le chrono": "Detener el temporizador", "Démarrer un chrono…": "Iniciar un temporizador…",
@@ -873,7 +873,7 @@ class Bulle:
     # -- note rapide ---------------------------------------------------------
     def note_rapide(self):
         f = tk.Toplevel(self.racine)
-        f.title("Note rapide")
+        f.title(tr("Note rapide"))
         f.attributes("-topmost", True)
         if systeme.WINDOWS:
             f.attributes("-toolwindow", True)   # pas de bouton dans la barre des tâches

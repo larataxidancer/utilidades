@@ -31,6 +31,26 @@ import systeme  # noqa: E402  (tout ce qui dépend de Windows ou de Linux)
 
 # MES_OUTILS_PORT : un autre port (essais, seconde copie à côté de la vraie).
 HOTE, PORT = "127.0.0.1", int(os.environ.get("MES_OUTILS_PORT") or 8760)
+
+_ESPAGNOL = {
+    "Aucun serveur sur le port {port} dans la liste.": "No hay ningún servidor en el puerto {port} en la lista.",
+    "Action inconnue.": "Acción desconocida.",
+    "Outil introuvable.": "No se encontró la herramienta.",
+    "Aucune commande de démarrage pour cet outil.": "No hay un comando de inicio para esta herramienta.",
+    "L'outil ne répond pas sur le port {port}.": "La herramienta no responde en el puerto {port}.",
+    "Introuvable : {cible}": "No se encontró: {cible}",
+    "Type d'outil inconnu : {genre}": "Tipo de herramienta desconocido: {genre}",
+    "Le gadget « Serveurs Odoo » complet ne fonctionne que sous Windows.":
+        "El complemento completo «Servidores Odoo» solo funciona en Windows.",
+    "Accès refusé.": "Acceso denegado.",
+    "Introuvable.": "No se encontró.",
+    "Erreur inattendue : {detail}": "Error inesperado: {detail}",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
 ICI = config.ICI
 RACINE = config.RACINE
 PAGE = os.path.join(ICI, "hub.html")
@@ -152,7 +172,7 @@ def serveur_par_port(port):
     for s in g.charger_reglages()["serveurs"]:
         if s["port"] == int(port):
             return g, s
-    raise ValueError(f"Aucun serveur sur le port {port} dans la liste.")
+    raise ValueError(_i18n("Aucun serveur sur le port {port} dans la liste.", port=port))
 
 
 def action_serveur(action, port):
@@ -166,7 +186,7 @@ def action_serveur(action, port):
     elif action == "journal":
         g.ouvrir_journal(g.fichier_journal(s["port"]))
     else:
-        raise ValueError("Action inconnue.")
+        raise ValueError(_i18n("Action inconnue."))
     _cache_etats["heure"] = 0  # relire les états au prochain appel
 
 
@@ -219,7 +239,7 @@ def ouvrir_cible(cible):
 def lancer_outil(identifiant):
     outil = next((o for o in lire_outils()["outils"] if o["id"] == identifiant), None)
     if not outil:
-        raise ValueError("Outil introuvable.")
+        raise ValueError(_i18n("Outil introuvable."))
     genre, cible = outil.get("type"), outil.get("cible", "")
 
     if genre == "appli_web":
@@ -229,14 +249,14 @@ def lancer_outil(identifiant):
         if port and not port_ouvert(port):
             commande = outil.get("commande") or []
             if not commande:
-                raise ValueError("Aucune commande de démarrage pour cet outil.")
+                raise ValueError(_i18n("Aucune commande de démarrage pour cet outil."))
             lancer_detache(commande, outil.get("dossier"))
             for _ in range(40):
                 if port_ouvert(port):
                     break
                 time.sleep(0.25)
             else:
-                raise RuntimeError(f"L'outil ne répond pas sur le port {port}.")
+                raise RuntimeError(_i18n("L'outil ne répond pas sur le port {port}.", port=port))
         if outil.get("fenetre_appli", True):
             ouvrir_fenetre_appli(cible)
         else:
@@ -250,12 +270,12 @@ def lancer_outil(identifiant):
             webbrowser.open(cible)
     elif genre in ("dossier", "fichier", "programme"):
         if not os.path.exists(cible):
-            raise FileNotFoundError(f"Introuvable : {cible}")
+            raise FileNotFoundError(_i18n("Introuvable : {cible}", cible=cible))
         ouvrir_cible(cible)
     elif genre == "commande":
         lancer_detache(cible if isinstance(cible, list) else cible, outil.get("dossier"))
     else:
-        raise ValueError(f"Type d'outil inconnu : {genre}")
+        raise ValueError(_i18n("Type d'outil inconnu : {genre}", genre=genre))
 
 
 def etat_outils():
@@ -354,7 +374,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
     def do_GET(self):
         chemin = urllib.parse.urlparse(self.path).path
         if not self.requete_sure(ecriture=chemin.startswith("/api/")):
-            return self.repondre(403, {"erreur": "Accès refusé."})
+            return self.repondre(403, {"erreur": _i18n("Accès refusé.")})
         try:
             if chemin in ("/", "/index.html"):
                 with open(PAGE, "rb") as f:
@@ -394,7 +414,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
                 if os.path.isfile(fichier) and os.path.splitext(nom)[1] in TYPES_FICHIERS:
                     with open(fichier, "rb") as f:
                         return self.repondre(200, f.read(), TYPES_FICHIERS[os.path.splitext(nom)[1]])
-            self.repondre(404, {"erreur": "Introuvable."})
+            self.repondre(404, {"erreur": _i18n("Introuvable.")})
         except Exception as e:  # noqa: BLE001
             journal(traceback.format_exc())
             self.repondre(500, {"erreur": str(e)})
@@ -409,7 +429,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
             longueur = 0
         corps = self.rfile.read(longueur) if longueur > 0 else b""
         if not self.requete_sure(ecriture=True):
-            return self.repondre(403, {"erreur": "Accès refusé."})
+            return             self.repondre(403, {"erreur": _i18n("Accès refusé.")})
         try:
             donnees_requete = json.loads(corps.decode("utf-8") or "{}")
             if chemin == "/api/lancer":
@@ -442,7 +462,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
             if chemin == "/api/gadget":
                 # Le gadget complet est un .bat : Windows seulement.
                 if not systeme.WINDOWS:
-                    raise ValueError("Le gadget « Serveurs Odoo » complet ne fonctionne que sous Windows.")
+                    raise ValueError(_i18n("Le gadget « Serveurs Odoo » complet ne fonctionne que sous Windows."))
                 g = gadget()
                 bat = os.path.join(os.path.dirname(g.__file__), "Gestion serveurs Odoo.bat")
                 systeme.ouvrir(bat)
@@ -453,14 +473,14 @@ class Gestionnaire(BaseHTTPRequestHandler):
                 if routes is not None:
                     fonction = routes.get(morceaux[1])
                     if fonction is None:
-                        return self.repondre(404, {"erreur": "Introuvable."})
+                        return self.repondre(404, {"erreur": _i18n("Introuvable.")})
                     return self.repondre(200, fonction(donnees_requete))
             if chemin == "/api/quitter":
                 self.repondre(200, {"ok": True})
                 if not BULLE_ACTIVE:  # avec la bulle, on ferme seulement la fenêtre
                     threading.Thread(target=self.server.shutdown, daemon=True).start()
                 return None
-            self.repondre(404, {"erreur": "Introuvable."})
+            self.repondre(404, {"erreur": _i18n("Introuvable.")})
         except (ValueError, RuntimeError, FileNotFoundError, PermissionError) as e:
             self.repondre(400, {"erreur": str(e)})
         except Exception as e:  # noqa: BLE001
@@ -469,7 +489,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
             if type(e).__name__.startswith("Erreur"):
                 return self.repondre(400, {"erreur": str(e)})
             journal(traceback.format_exc())
-            self.repondre(500, {"erreur": f"Erreur inattendue : {e}"})
+            self.repondre(500, {"erreur": _i18n("Erreur inattendue : {detail}", detail=e)})
 
     def coffre(self, action, d):
         """Le coffre à mots de passe. Le mot de passe maître passe par ici le
@@ -505,7 +525,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
             return self.repondre(200, c.etat())
         if action == "supprimer":
             return self.repondre(200, {"supprimes": c.supprimer(d["id"]), **c.etat()})
-        return self.repondre(404, {"erreur": "Introuvable."})
+        return self.repondre(404, {"erreur": _i18n("Introuvable.")})
 
     def ssh(self, action, d):
         """Serveurs SSH (voir ssh_cles.py). Le mot de passe de « creer » ne
@@ -522,7 +542,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
             return self.repondre(200, ssh_cles.ouvrir_terminal(d["alias"]))
         if action == "retirer":
             return self.repondre(200, ssh_cles.retirer(d["alias"]))
-        return self.repondre(404, {"erreur": "Introuvable."})
+        return self.repondre(404, {"erreur": _i18n("Introuvable.")})
 
     def github(self, action, d):
         """GitHub (voir github.py). Le jeton reste dans le coffre de Windows :
@@ -563,7 +583,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
         fonction = (getattr(github, "ROUTES", None) or {}).get(action)
         if fonction:
             return self.repondre(200, fonction(d))
-        return self.repondre(404, {"erreur": "Introuvable."})
+        return self.repondre(404, {"erreur": _i18n("Introuvable.")})
 
     def mail(self, action, d):
         b = boite()
@@ -585,7 +605,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
             b.envoyer(d.get("a", ""), d.get("sujet", ""), d.get("corps", ""), d.get("cc", ""),
                       d.get("reponse_a"), d.get("references"))
             return self.repondre(200, {"ok": True})
-        return self.repondre(404, {"erreur": "Introuvable."})
+        return self.repondre(404, {"erreur": _i18n("Introuvable.")})
 
 
 def main():

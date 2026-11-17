@@ -10,8 +10,10 @@
   // Thème appliqué avant le premier affichage (pas d'éclair blanc).
   (() => { let c = "auto"; try { c = localStorage.getItem("mes-outils-theme") || "auto"; } catch {}
     const f = new URLSearchParams(location.search).get("theme");
-    const sombre = f ? f === "sombre" : c === "sombre" || (c === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.dataset.theme = sombre ? "sombre" : "clair"; })();
+    const choix = f || c || "auto";
+    const rosa = choix === "rosa";
+    const sombre = !rosa && (choix === "sombre" || (choix === "auto" && matchMedia("(prefers-color-scheme: dark)").matches));
+    document.documentElement.dataset.theme = rosa ? "rosa" : sombre ? "sombre" : "clair"; })();
 </script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%235b5bd6'/><g fill='none' stroke='white' stroke-width='2'><rect x='6' y='6' width='5' height='5' rx='1'/><rect x='13' y='6' width='5' height='5' rx='1'/><rect x='6' y='13' width='5' height='5' rx='1'/><rect x='13' y='13' width='5' height='5' rx='1'/></g></svg>">
 <style>
@@ -44,6 +46,18 @@
     --code: #121215; --code-texte: #e4e4e8; --verre: #17171a; --voile: rgba(0, 0, 0, .62);
     --ombre: 0 1px 2px rgba(0, 0, 0, .5);
     --ombre-forte: 0 16px 40px -12px rgba(0, 0, 0, .8), 0 0 0 1px rgba(255, 255, 255, .04);
+  }
+  :root[data-theme="rosa"] {
+    color-scheme: light;
+    --fond: #fff5f7; --carte: #ffffff; --surface: #fdf2f8; --champ: #fffefe; --champ-focus: #ffffff;
+    --encre: #2d1b24; --doux: #6b4c5b; --gris: #8b6776; --ligne: #fbcfe8; --ligne-forte: #f9a8d4;
+    --violet: #db2777; --violet-2: #be185d; --violet-clair: #fce7f3; --sur-violet: #fff7fb;
+    --corail: #ff8f7a; --menthe: #2f9f83; --ambre: #d97706; --rouge: #dc2626;
+    --vert-clair: #e6f8f1; --vert-texte: #117a58; --rouge-clair: #fee2e2; --rouge-texte: #b91c1c;
+    --ambre-clair: #fff5db; --ambre-texte: #92400e; --bleu-clair: #f1f5ff; --bleu-texte: #1d4ed8;
+    --code: #fff7fb; --code-texte: #3e2a33; --verre: rgba(255, 255, 255, .76); --voile: rgba(62, 22, 42, .38);
+    --ombre: 0 1px 2px rgba(219, 39, 119, .09);
+    --ombre-forte: 0 16px 40px -16px rgba(190, 24, 93, .25), 0 1px 3px rgba(219, 39, 119, .08);
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
@@ -384,7 +398,7 @@
     <button class="recherche-globale" id="btn-palette" title="Rechercher un onglet, un outil, une action (Ctrl + K)"><span>🔎</span><span class="t">Rechercher…</span><kbd>Ctrl K</kbd></button>
     <div class="espace"></div>
     <span class="horloge" id="heure">--:--</span>
-    <button class="icone-btn" id="btn-theme" title="Thème clair ou sombre">🌙</button>
+    <button class="icone-btn" id="btn-theme" title="Changer de thème">🌙</button>
     <button class="icone-btn" id="btn-quitter" title="Arrêter le tableau de bord">🚪</button>
   </header>
 
@@ -1163,7 +1177,9 @@ async function compterMails() {
 I18N.ajouter({
   "Rechercher…": "Search…", "Rechercher un onglet, un outil, une action (Ctrl + K)": "Search a tab, a tool, an action (Ctrl + K)",
   "Aller à un onglet, lancer un outil, une action…": "Go to a tab, launch a tool, run an action…",
-  "Thème clair ou sombre": "Light or dark theme", "Thème : automatique (comme Windows)": "Theme: automatic (like Windows)",
+  "Changer de thème": "Change theme", "Thème : automatique (comme Windows)": "Theme: automatic (like Windows)",
+  "Thème : clair": "Theme: light", "Thème : sombre": "Theme: dark", "Thème : rose": "Theme: pink",
+  "Thème rose": "Pink theme",
   "Thème : sombre": "Theme: dark", "Thème : clair": "Theme: light", "Thème sombre": "Dark theme", "Thème clair": "Light theme",
   "Thème automatique (comme Windows)": "Automatic theme (like Windows)", "Modifier les tuiles": "Edit the tiles",
   "Recharger la page": "Reload the page", "Onglets": "Tabs", "Mes outils": "My tools", "Actions": "Actions", "Rien trouvé": "Nothing found",
@@ -1195,23 +1211,42 @@ I18N.ajouter({
   "Impossible d'ouvrir : la commande xdg-open est absente.": "Cannot open: the xdg-open command is missing.",
   "Le trousseau du bureau est verrouillé.": "The desktop keyring is locked.",
 });
+I18N.ajouterEspanol({
+  "Changer de thème": "Cambiar tema",
+  "Thème : automatique (comme Windows)": "Tema: automático (como Windows)",
+  "Thème : rose": "Tema: rosa",
+  "Thème automatique (comme Windows)": "Tema automático (como Windows)",
+  "Modifier les tuiles": "Editar los mosaicos",
+  "Recharger la page": "Recargar la página",
+  "Chemin du dossier, ex. /home/vous/Documents": "Ruta de la carpeta, p. ej., /home/usuario/Documentos",
+  "Chemin d'un fichier, d'un programme ou d'un script .sh": "Ruta de un archivo, programa o script .sh",
+  "Le gadget « Serveurs Odoo » complet ne fonctionne que sous Windows.":
+    "El complemento completo de «Servidores Odoo» solo funciona en Windows.",
+  "Aucune fenêtre de choix de fichiers : installez zenity (sudo apt install zenity).":
+    "No hay un selector de archivos disponible: instala zenity (sudo apt install zenity).",
+  "Aucune fenêtre de choix de dossier : installez zenity (sudo apt install zenity).":
+    "No hay un selector de carpetas disponible: instala zenity (sudo apt install zenity).",
+  "Impossible d'ouvrir : la commande xdg-open est absente.": "No se puede abrir: falta el comando xdg-open.",
+  "Le trousseau du bureau est verrouillé.": "El llavero del escritorio está bloqueado.",
+});
 I18N.motifs([[/^Trousseau du bureau inaccessible \((.*)\)\.$/, "Desktop keyring unavailable ($1)."]]);
 
 // --------------------------------------------------------------- thème
 // « auto » suit le système (Windows ou le bureau Linux) ; ?theme=sombre dans
 // l'adresse force un thème (captures).
 const texteThemeAuto = () => selonSysteme("Thème : automatique (comme Windows)", "Thème : automatique (comme le système)");
-const THEMES = ["auto", "clair", "sombre"];
+const THEMES = ["auto", "clair", "sombre", "rosa"];
 const sombreWindows = matchMedia("(prefers-color-scheme: dark)");
 function appliquerTheme(choix) {
   if (!THEMES.includes(choix)) choix = "auto";
   S.theme = choix;
   const force = new URLSearchParams(location.search).get("theme");
-  const sombre = force ? force === "sombre" : choix === "sombre" || (choix === "auto" && sombreWindows.matches);
-  document.documentElement.dataset.theme = sombre ? "sombre" : "clair";
+  const rosa = force ? force === "rosa" : choix === "rosa";
+  const sombre = !rosa && (force ? force === "sombre" : choix === "sombre" || (choix === "auto" && sombreWindows.matches));
+  document.documentElement.dataset.theme = rosa ? "rosa" : sombre ? "sombre" : "clair";
   const b = $("#btn-theme");
-  b.textContent = choix === "auto" ? "🌗" : sombre ? "🌙" : "☀️";
-  b.title = I18N.traduire(choix === "auto" ? texteThemeAuto() : sombre ? "Thème : sombre" : "Thème : clair");
+  b.textContent = choix === "auto" ? "🌗" : choix === "rosa" ? "🌷" : sombre ? "🌙" : "☀️";
+  b.title = I18N.traduire(choix === "auto" ? texteThemeAuto() : choix === "rosa" ? "Thème : rose" : sombre ? "Thème : sombre" : "Thème : clair");
   try { localStorage.setItem("mes-outils-theme", choix); } catch {}
 }
 sombreWindows.addEventListener("change", () => { if (S.theme === "auto") appliquerTheme("auto"); });
@@ -1244,6 +1279,7 @@ function elementsPalette() {
   items.push(
     { section: "Actions", icone: "🌙", titre: I18N.traduire("Thème sombre"), action: () => changerTheme("sombre") },
     { section: "Actions", icone: "☀️", titre: I18N.traduire("Thème clair"), action: () => changerTheme("clair") },
+    { section: "Actions", icone: "🌷", titre: I18N.traduire("Thème rose"), action: () => changerTheme("rosa") },
     { section: "Actions", icone: "🌗", titre: I18N.traduire(selonSysteme("Thème automatique (comme Windows)", "Thème automatique (comme le système)")), action: () => changerTheme("auto") },
     { section: "Actions", icone: "✏️", titre: I18N.traduire("Modifier les tuiles"), action: () => { montrerVue("accueil"); if (!S.edition) $("#btn-edition").click(); } },
     { section: "Actions", icone: "🔄", titre: I18N.traduire("Recharger la page"), action: () => location.reload() });

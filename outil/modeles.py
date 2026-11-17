@@ -43,6 +43,27 @@ RE_ADRESSE = re.compile(r"^[^@\s,;<>\"]+@[^@\s,;<>\"]+\.[^@\s,;<>\"]+$")
 
 _verrou = threading.RLock()
 
+_ESPAGNOL = {
+    "Modèle invalide.": "La plantilla no es válida.",
+    "Donnez un titre au modèle.": "Asigna un título a la plantilla.",
+    "Le texte du modèle est vide.": "El texto de la plantilla está vacío.",
+    "Titre trop long (120 caractères au plus).": "El título es demasiado largo (máximo 120 caracteres).",
+    "Catégorie trop longue (40 caractères au plus).": "La categoría es demasiado larga (máximo 40 caracteres).",
+    "Objet trop long (250 caractères au plus).": "El asunto es demasiado largo (máximo 250 caracteres).",
+    "Texte trop long (20 000 caractères au plus).": "El texto es demasiado largo (máximo 20 000 caracteres).",
+    "Modèle introuvable.": "No se encontró la plantilla.",
+    "Ce fichier n'est pas un export de modèles de messages.": "Este archivo no es una exportación de plantillas de mensajes.",
+    "Trop de modèles dans ce fichier (2 000 au plus).": "Hay demasiadas plantillas en este archivo (máximo 2000).",
+    "Adresse e-mail invalide : {adresse}": "La dirección de correo electrónico no es válida: {adresse}",
+    "Aucune messagerie n'est associée aux liens e-mail sur ce PC.":
+        "No hay ninguna aplicación de correo asociada a los enlaces de correo en este equipo.",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
+
 
 # ---------------------------------------------------------------------------
 # Exemples livrés avec l'application (neutres, sans donnée personnelle)
@@ -243,24 +264,24 @@ def _ecrire(modeles):
 def _propre(modele):
     """Les champs modifiables d'un modèle, vérifiés. Lève ValueError."""
     if not isinstance(modele, dict):
-        raise ValueError("Modèle invalide.")
+        raise ValueError(_i18n("Modèle invalide."))
     titre = " ".join(str(modele.get("titre") or "").split())
     texte = str(modele.get("texte") or "").replace("\r\n", "\n")
     objet = " ".join(str(modele.get("objet") or "").split())
     categorie = " ".join(str(modele.get("categorie") or "").split())
     langue = str(modele.get("langue") or "fr").strip().lower()
     if not titre:
-        raise ValueError("Donnez un titre au modèle.")
+        raise ValueError(_i18n("Donnez un titre au modèle."))
     if not texte.strip():
-        raise ValueError("Le texte du modèle est vide.")
+        raise ValueError(_i18n("Le texte du modèle est vide."))
     if len(titre) > MAX_TITRE:
-        raise ValueError("Titre trop long (120 caractères au plus).")
+        raise ValueError(_i18n("Titre trop long (120 caractères au plus)."))
     if len(categorie) > MAX_CATEGORIE:
-        raise ValueError("Catégorie trop longue (40 caractères au plus).")
+        raise ValueError(_i18n("Catégorie trop longue (40 caractères au plus)."))
     if len(objet) > MAX_OBJET:
-        raise ValueError("Objet trop long (250 caractères au plus).")
+        raise ValueError(_i18n("Objet trop long (250 caractères au plus)."))
     if len(texte) > MAX_TEXTE:
-        raise ValueError("Texte trop long (20 000 caractères au plus).")
+        raise ValueError(_i18n("Texte trop long (20 000 caractères au plus)."))
     return {
         "titre": titre,
         "categorie": categorie,
@@ -304,7 +325,7 @@ def _empreinte(m):
 def _trouver(modeles, identifiant):
     m = next((x for x in modeles if x.get("id") == identifiant), None) if identifiant else None
     if m is None:
-        raise ValueError("Modèle introuvable.")
+        raise ValueError(_i18n("Modèle introuvable."))
     return m
 
 
@@ -444,12 +465,12 @@ def importer(contenu):
     Renvoie {ajoutes, doublons, invalides}."""
     if isinstance(contenu, dict):
         if contenu.get("format") not in (None, FORMAT_EXPORT):
-            raise ValueError("Ce fichier n'est pas un export de modèles de messages.")
+            raise ValueError(_i18n("Ce fichier n'est pas un export de modèles de messages."))
         contenu = contenu.get("modeles")
     if not isinstance(contenu, list):
-        raise ValueError("Ce fichier n'est pas un export de modèles de messages.")
+        raise ValueError(_i18n("Ce fichier n'est pas un export de modèles de messages."))
     if len(contenu) > MAX_IMPORT:
-        raise ValueError("Trop de modèles dans ce fichier (2 000 au plus).")
+        raise ValueError(_i18n("Trop de modèles dans ce fichier (2 000 au plus)."))
     with _verrou:
         modeles = preparer()
         vus = {_empreinte(m) for m in modeles}
@@ -484,7 +505,7 @@ def adresses(texte):
     liste = [a.strip() for a in re.split(r"[,;]", str(texte or "")) if a.strip()]
     for a in liste:
         if not RE_ADRESSE.match(a):
-            raise ValueError(f"Adresse e-mail invalide : {a}")
+            raise ValueError(_i18n("Adresse e-mail invalide : {adresse}", adresse=a))
     return liste
 
 
@@ -513,7 +534,7 @@ def ecrire_mail(a="", objet="", texte=""):
     try:
         systeme.ouvrir(lien)  # lien construit ici : toujours « mailto: », tout encodé
     except (OSError, RuntimeError):
-        raise ValueError("Aucune messagerie n'est associée aux liens e-mail sur ce PC.")
+        raise ValueError(_i18n("Aucune messagerie n'est associée aux liens e-mail sur ce PC."))
     return {"lien": lien, "texte_retire": retire}
 
 

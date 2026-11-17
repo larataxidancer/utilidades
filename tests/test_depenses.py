@@ -69,6 +69,15 @@ class TestMontantsEtCategories(Base):
             depenses.changer_devise("GBP")
         self.assertEqual(depenses.devise(), "MGA")
 
+    def test_devise_cop(self):
+        depenses.changer_devise("COP")
+        self.assertEqual(depenses._montant("1250,6"), Decimal("1250.60"))
+        self.assertIn("COP", depenses.reglages()["devises"])
+        self.assertEqual(depenses._format(Decimal("1250.6"), "COP"), "1\u202f250,60 COP")
+        with mock.patch.object(config, "langue", return_value="es"):
+            self.assertEqual(depenses._texte("Budget dépassé"), "Presupuesto excedido")
+            self.assertEqual(depenses._format(Decimal("1250.6"), "COP"), "1.250,60 COP")
+
     def test_categories_par_defaut_et_epargne(self):
         cats = depenses.reglages()["categories"]
         self.assertEqual(len(cats), 11)

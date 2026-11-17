@@ -35,6 +35,37 @@ import systeme
 CIBLE_COFFRE = "MesOutils:mail:{adresse}"
 SECTION = "mail"
 
+_ESPAGNOL = {
+    "Fournisseur inconnu.": "Proveedor desconocido.",
+    "Port invalide.": "El puerto no es válido.",
+    "Adresse mail invalide.": "La dirección de correo electrónico no es válida.",
+    "Indiquez le serveur IMAP et le serveur SMTP.": "Indica el servidor IMAP y el servidor SMTP.",
+    "Nom de serveur invalide.": "El nombre del servidor no es válido.",
+    "Sécurité SMTP inconnue (SSL ou STARTTLS).": "Seguridad SMTP desconocida (SSL o STARTTLS).",
+    "Boîte mail pas encore connectée.": "El correo aún no está conectado.",
+    "Indiquez l'adresse et le mot de passe.": "Indica la dirección de correo electrónico y la contraseña.",
+    "Dossier introuvable dans la boîte.": "No se encontró la carpeta en el buzón.",
+    "Mail introuvable.": "No se encontró el correo.",
+    "Recherche refusée par le serveur.": "El servidor rechazó la búsqueda.",
+    "Indiquez au moins un destinataire.": "Indica al menos un destinatario.",
+    "Pas de connexion au serveur mail (Internet ? nom du serveur ?) : {detail}":
+        "No se pudo conectar con el servidor de correo (¿Internet? ¿nombre del servidor?): {detail}",
+    "Impossible d'enregistrer le mot de passe dans {coffre}.":
+        "No se pudo guardar la contraseña en {coffre}.",
+    "Envoi refusé par le serveur : {detail}": "El servidor rechazó el envío: {detail}",
+    "Outlook, Hotmail et Live ne sont pas encore pris en charge : Microsoft n'accepte plus les mots de passe pour les logiciels de messagerie.":
+        "Outlook, Hotmail y Live aún no son compatibles: Microsoft ya no acepta contraseñas en aplicaciones de correo.",
+    "Le serveur refuse ce mot de passe (il faut un mot de passe d'application, pas votre mot de passe habituel)":
+        "El servidor rechazó esta contraseña (se necesita una contraseña de aplicación, no la contraseña habitual)",
+    "Le serveur refuse l'identifiant ou le mot de passe": "El servidor rechazó el usuario o la contraseña",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
+
+
 # ---------------------------------------------------------------------------
 # Fournisseurs
 # ---------------------------------------------------------------------------
@@ -107,7 +138,7 @@ def prereglage(fournisseur, adresse=""):
         raise ErreurMail(MESSAGE_MICROSOFT)
     f = FOURNISSEURS.get(fournisseur)
     if f is None:
-        raise ErreurMail("Fournisseur inconnu.")
+        raise ErreurMail(_i18n("Fournisseur inconnu."))
     imap_hote, smtp_hote = f.get("hotes_par_domaine", {}).get(domaine(adresse), (f["imap"][0], f["smtp"][0]))
     return {"fournisseur": fournisseur, "imap_hote": imap_hote, "imap_port": f["imap"][1],
             "smtp_hote": smtp_hote, "smtp_port": f["smtp"][1], "smtp_securite": f["smtp"][2],
@@ -120,9 +151,9 @@ def _port(valeur, defaut):
     try:
         port = int(valeur)
     except (TypeError, ValueError):
-        raise ErreurMail("Port invalide.") from None
+        raise ErreurMail(_i18n("Port invalide.")) from None
     if not 1 <= port <= 65535:
-        raise ErreurMail("Port invalide.")
+        raise ErreurMail(_i18n("Port invalide."))
     return port
 
 
@@ -139,7 +170,7 @@ def normaliser(adresse, reglages=None):
     """
     adresse = (adresse or "").strip()
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", adresse):
-        raise ErreurMail("Adresse mail invalide.")
+        raise ErreurMail(_i18n("Adresse mail invalide."))
     if est_microsoft(adresse):
         raise ErreurMail(MESSAGE_MICROSOFT)
     reglages = dict(reglages or {})
@@ -152,12 +183,12 @@ def normaliser(adresse, reglages=None):
     imap_hote = str(reglages.get("imap_hote") or "").strip()
     smtp_hote = str(reglages.get("smtp_hote") or "").strip()
     if not imap_hote or not smtp_hote:
-        raise ErreurMail("Indiquez le serveur IMAP et le serveur SMTP.")
+        raise ErreurMail(_i18n("Indiquez le serveur IMAP et le serveur SMTP."))
     if not _HOTE_VALIDE.match(imap_hote) or not _HOTE_VALIDE.match(smtp_hote):
-        raise ErreurMail("Nom de serveur invalide.")
+        raise ErreurMail(_i18n("Nom de serveur invalide."))
     securite = reglages.get("smtp_securite") or "ssl"
     if securite not in SECURITES_SMTP:
-        raise ErreurMail("Sécurité SMTP inconnue (SSL ou STARTTLS).")
+        raise ErreurMail(_i18n("Sécurité SMTP inconnue (SSL ou STARTTLS)."))
     return {"fournisseur": "autre", "imap_hote": imap_hote, "imap_port": _port(reglages.get("imap_port"), 993),
             "smtp_hote": smtp_hote, "smtp_port": _port(reglages.get("smtp_port"), 465 if securite == "ssl" else 587),
             "smtp_securite": securite, "identifiant": identifiant}
@@ -201,7 +232,8 @@ def fournisseurs_pour_page():
 def _message_coffre_impossible():
     if systeme.WINDOWS:  # texte inchangé : la page le traduit tel quel
         return "Impossible d'enregistrer le mot de passe dans le coffre Windows."
-    return f"Impossible d'enregistrer le mot de passe dans {systeme.nom_du_coffre()}."
+    return _i18n("Impossible d'enregistrer le mot de passe dans {coffre}.",
+                  coffre=systeme.nom_du_coffre())
 
 
 def coffre_ecrire(adresse, secret):
@@ -326,7 +358,7 @@ def _message_refus(fournisseur, e):
                  "pas votre mot de passe habituel)")
     else:
         debut = "Le serveur refuse l'identifiant ou le mot de passe"
-    return f"{debut} : {_court(e)}"
+    return f"{_i18n(debut)} : {_court(e)}"
 
 
 # ---------------------------------------------------------------------------
@@ -358,12 +390,13 @@ class Boite:
     @staticmethod
     def _ouvrir_imap(reglages, secret):
         if reglages.get("fournisseur") == "outlook":
-            raise ErreurMail(MESSAGE_MICROSOFT)
+            raise ErreurMail(_i18n(MESSAGE_MICROSOFT))
         try:
             c = imaplib.IMAP4_SSL(reglages["imap_hote"], reglages["imap_port"],
                                   ssl_context=ssl.create_default_context(), timeout=20)
         except OSError as e:
-            raise ErreurMail("Pas de connexion au serveur mail (Internet ? nom du serveur ?) : " + _court(e))
+            raise ErreurMail(_i18n("Pas de connexion au serveur mail (Internet ? nom du serveur ?) : {detail}",
+                                   detail=_court(e)))
         try:
             c.login(reglages["identifiant"], secret)
         except imaplib.IMAP4.error as e:
@@ -373,13 +406,14 @@ class Boite:
                 pass
             raise ErreurMail(_message_refus(reglages.get("fournisseur"), e))
         except OSError as e:
-            raise ErreurMail("Pas de connexion au serveur mail (Internet ? nom du serveur ?) : " + _court(e))
+            raise ErreurMail(_i18n("Pas de connexion au serveur mail (Internet ? nom du serveur ?) : {detail}",
+                                   detail=_court(e)))
         return c
 
     def _imap(self):
         secret = coffre_lire(self.adresse)
         if not secret:
-            raise ErreurMail("Boîte mail pas encore connectée.")
+            raise ErreurMail(_i18n("Boîte mail pas encore connectée."))
         return self._ouvrir_imap(self.reglages(), secret)
 
     def tester_et_enregistrer(self, adresse, secret, reglages=None):
@@ -389,7 +423,7 @@ class Boite:
         adresse = (adresse or "").strip()
         secret = (secret or "").strip()
         if not adresse or not secret:
-            raise ErreurMail("Indiquez l'adresse et le mot de passe.")
+            raise ErreurMail(_i18n("Indiquez l'adresse et le mot de passe."))
         r = normaliser(adresse, reglages)
         if FOURNISSEURS[r["fournisseur"]]["mot_de_passe"] == "application":
             # Les codes d'application s'affichent souvent par groupes : « abcd efgh ».
@@ -430,12 +464,12 @@ class Boite:
                 marque, noms = self.MARQUES[dossier]
                 nom = trouver_dossier(lire_liste_dossiers(lignes), marque, noms)
                 if not nom:
-                    raise ErreurMail("Dossier introuvable dans la boîte.")
+                    raise ErreurMail(_i18n("Dossier introuvable dans la boîte."))
                 self._dossiers[dossier] = nom
         statut, _ = c.select(_guillemets(nom), readonly=lecture_seule)
         if statut != "OK":
             self._dossiers.pop(dossier, None)
-            raise ErreurMail("Dossier introuvable dans la boîte.")
+            raise ErreurMail(_i18n("Dossier introuvable dans la boîte."))
 
     @staticmethod
     def _capacites(c):
@@ -475,7 +509,7 @@ class Boite:
                 self._choisir(c, dossier)
                 statut, donnees = self._rechercher(c, recherche)
                 if statut != "OK":
-                    raise ErreurMail("Recherche refusée par le serveur.")
+                    raise ErreurMail(_i18n("Recherche refusée par le serveur."))
                 uids = (donnees[0] or b"").split()[-nombre:]
                 mails = []
                 if uids:
@@ -504,7 +538,7 @@ class Boite:
 
     def lire(self, uid, dossier="recus"):
         if not re.fullmatch(r"\d+", str(uid)):
-            raise ErreurMail("Mail introuvable.")
+            raise ErreurMail(_i18n("Mail introuvable."))
         with self._verrou:
             c = self._imap()
             try:
@@ -512,7 +546,7 @@ class Boite:
                 statut, reponse = c.uid("FETCH", str(uid).encode(), "(BODY.PEEK[])")
                 brut = next((p[1] for p in reponse or [] if isinstance(p, tuple)), None)
                 if not brut:
-                    raise ErreurMail("Mail introuvable.")
+                    raise ErreurMail(_i18n("Mail introuvable."))
                 c.uid("STORE", str(uid).encode(), "+FLAGS", "(\\Seen)")
             finally:
                 c.logout()
@@ -589,13 +623,13 @@ class Boite:
 
     def envoyer(self, a, sujet, corps, cc="", reponse_a=None, references=None):
         if not (a or "").strip():
-            raise ErreurMail("Indiquez au moins un destinataire.")
+            raise ErreurMail(_i18n("Indiquez au moins un destinataire."))
         secret = coffre_lire(self.adresse)
         if not secret:
-            raise ErreurMail("Boîte mail pas encore connectée.")
+            raise ErreurMail(_i18n("Boîte mail pas encore connectée."))
         r = self.reglages()
         if r.get("fournisseur") == "outlook":
-            raise ErreurMail(MESSAGE_MICROSOFT)
+            raise ErreurMail(_i18n(MESSAGE_MICROSOFT))
         msg = EmailMessage()
         msg["From"] = self.adresse
         msg["To"] = a
@@ -615,7 +649,8 @@ class Boite:
         except smtplib.SMTPAuthenticationError as e:
             raise ErreurMail(_message_refus(r.get("fournisseur"), e))
         except smtplib.SMTPException as e:
-            raise ErreurMail("Envoi refusé par le serveur : " + _court(e))
+            raise ErreurMail(_i18n("Envoi refusé par le serveur : {detail}", detail=_court(e)))
         except OSError as e:
-            raise ErreurMail("Pas de connexion au serveur mail (Internet ? nom du serveur ?) : " + _court(e))
+            raise ErreurMail(_i18n("Pas de connexion au serveur mail (Internet ? nom du serveur ?) : {detail}",
+                                   detail=_court(e)))
         self._cache_liste.clear()

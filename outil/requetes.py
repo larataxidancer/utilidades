@@ -34,6 +34,47 @@ from datetime import datetime
 
 import config
 
+_ESPAGNOL = {
+    "Texte trop long.": "El texto es demasiado largo.",
+    "Liste de lignes invalide.": "La lista de líneas no es válida.",
+    "Requête invalide.": "La solicitud no es válida.",
+    "Méthode non prise en charge : {methode}": "Método no compatible: {methode}",
+    "Type de corps inconnu.": "Tipo de cuerpo desconocido.",
+    "Type d'authentification inconnu.": "Tipo de autenticación desconocido.",
+    "Délai d'attente invalide.": "El tiempo de espera no es válido.",
+    "Seules les adresses http:// et https:// sont acceptées.": "Solo se aceptan direcciones http:// y https://.",
+    "Adresse incomplète : il manque le nom du serveur.": "La dirección está incompleta: falta el nombre del servidor.",
+    "Variable inconnue : {{{nom}}}": "Variable desconocida: {{{nom}}}",
+    "Une valeur masquée (••••) reste dans la requête : saisissez-la à nouveau.":
+        "Queda un valor oculto (••••) en la solicitud: vuelve a ingresarlo.",
+    "Nom d'en-tête invalide : {nom}": "El nombre de encabezado no es válido: {nom}",
+    "Valeur d'en-tête invalide : {nom}": "El valor del encabezado no es válido: {nom}",
+    "Caractère non permis dans l'en-tête {nom} (accents, emojis…).":
+        "Carácter no permitido en el encabezado {nom} (acentos, emojis…).",
+    "Jeton (Bearer) vide.": "El token (Bearer) está vacío.",
+    "Jeton invalide.": "El token no es válido.",
+    "Corps trop gros (10 Mo au plus).": "El cuerpo es demasiado grande (máximo 10 MB).",
+    "Pas de réponse après {delai} s (délai dépassé).": "No hubo respuesta después de {delai} s (se agotó el tiempo de espera).",
+    "Pas de réponse après {delai:g} s (délai dépassé).": "No hubo respuesta después de {delai:g} s (se agotó el tiempo de espera).",
+    "Certificat refusé : {detail}": "Certificado rechazado: {detail}",
+    ". Pour un serveur de développement, cochez « Ignorer les erreurs de certificat ».":
+        ". Para un servidor de desarrollo, marca «Ignorar errores de certificado».",
+    "Erreur TLS : {detail}": "Error de TLS: {detail}",
+    "Serveur introuvable (nom inconnu) : {hote}": "No se encontró el servidor (nombre desconocido): {hote}",
+    "Connexion refusée : rien n'écoute à cette adresse.": "Conexión rechazada: no hay ningún servicio escuchando en esta dirección.",
+    "Échec de la connexion : {detail}": "No se pudo establecer la conexión: {detail}",
+    "Donnez un nom à la requête.": "Asigna un nombre a la solicitud.",
+    "Trop de requêtes enregistrées : supprimez-en quelques-unes.": "Hay demasiadas solicitudes guardadas: elimina algunas.",
+    "Requête introuvable.": "No se encontró la solicitud.",
+    "Variables invalides.": "Las variables no son válidas.",
+    "Nom de variable invalide : {nom}": "El nombre de la variable no es válido: {nom}",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
+
 NOM = "requetes"
 METHODES = ("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
 TYPES_CORPS = ("aucun", "json", "texte", "formulaire")
@@ -84,7 +125,7 @@ def _nouvel_id():
 def _texte(v, limite=LIMITE_ENVOI):
     v = "" if v is None else str(v)
     if len(v) > limite:
-        raise ErreurRequete("Texte trop long.")
+        raise ErreurRequete(_i18n("Texte trop long."))
     return v
 
 
@@ -93,11 +134,11 @@ def _lignes(liste):
     if liste is None:
         return []
     if not isinstance(liste, list) or len(liste) > 100:
-        raise ErreurRequete("Liste de lignes invalide.")
+        raise ErreurRequete(_i18n("Liste de lignes invalide."))
     sortie = []
     for ligne in liste:
         if not isinstance(ligne, dict):
-            raise ErreurRequete("Liste de lignes invalide.")
+            raise ErreurRequete(_i18n("Liste de lignes invalide."))
         sortie.append({"cle": _texte(ligne.get("cle"), 2000), "valeur": _texte(ligne.get("valeur"), 100000),
                        "actif": ligne.get("actif", True) is not False})
     return sortie
@@ -106,23 +147,23 @@ def _lignes(liste):
 def normaliser(r):
     """La requête de la page, contrôlée et ramenée à une forme connue."""
     if not isinstance(r, dict):
-        raise ErreurRequete("Requête invalide.")
+        raise ErreurRequete(_i18n("Requête invalide."))
     methode = str(r.get("methode") or "GET").upper()
     if methode not in METHODES:
-        raise ErreurRequete(f"Méthode non prise en charge : {methode}")
+        raise ErreurRequete(_i18n("Méthode non prise en charge : {methode}", methode=methode))
     corps = r.get("corps") if isinstance(r.get("corps"), dict) else {}
     type_corps = corps.get("type") or "aucun"
     if type_corps not in TYPES_CORPS:
-        raise ErreurRequete("Type de corps inconnu.")
+        raise ErreurRequete(_i18n("Type de corps inconnu."))
     auth = r.get("auth") if isinstance(r.get("auth"), dict) else {}
     type_auth = auth.get("type") or "aucune"
     if type_auth not in TYPES_AUTH:
-        raise ErreurRequete("Type d'authentification inconnu.")
+        raise ErreurRequete(_i18n("Type d'authentification inconnu."))
     options = r.get("options") if isinstance(r.get("options"), dict) else {}
     try:
         timeout = float(options.get("timeout") or TIMEOUT_DEFAUT)
     except (TypeError, ValueError):
-        raise ErreurRequete("Délai d'attente invalide.") from None
+        raise ErreurRequete(_i18n("Délai d'attente invalide.")) from None
     return {
         "methode": methode,
         "url": _texte(r.get("url"), 8000).strip(),
@@ -141,9 +182,9 @@ def verifier_url(url):
     """Seuls http:// et https:// sont acceptés, avec un nom d'hôte."""
     morceaux = urllib.parse.urlsplit(url)
     if morceaux.scheme.lower() not in ("http", "https"):
-        raise ErreurRequete("Seules les adresses http:// et https:// sont acceptées.")
+        raise ErreurRequete(_i18n("Seules les adresses http:// et https:// sont acceptées."))
     if not morceaux.hostname:
-        raise ErreurRequete("Adresse incomplète : il manque le nom du serveur.")
+        raise ErreurRequete(_i18n("Adresse incomplète : il manque le nom du serveur."))
     return morceaux
 
 
@@ -154,7 +195,7 @@ def remplacer_variables(texte, variables):
     def valeur(m):
         nom = m.group(1)
         if nom not in variables:
-            raise ErreurRequete(f"Variable inconnue : {{{{{nom}}}}}")
+            raise ErreurRequete(_i18n("Variable inconnue : {{{nom}}}", nom=nom))
         return str(variables[nom])
     return VARIABLE.sub(valeur, texte) if texte else texte
 
@@ -184,7 +225,7 @@ def _refuser_masque(r):
     for liste in (r["params"], r["entetes"], r["corps"]["champs"]):
         morceaux += [ligne["valeur"] for ligne in liste if ligne["actif"]]
     if any(MASQUE in m for m in morceaux):
-        raise ErreurRequete("Une valeur masquée (••••) reste dans la requête : saisissez-la à nouveau.")
+        raise ErreurRequete(_i18n("Une valeur masquée (••••) reste dans la requête : saisissez-la à nouveau."))
 
 
 def url_complete(r):
@@ -210,13 +251,14 @@ def construire(r):
             continue
         nom = e["cle"].strip()
         if not NOM_ENTETE.match(nom):
-            raise ErreurRequete(f"Nom d'en-tête invalide : {nom}")
+            raise ErreurRequete(_i18n("Nom d'en-tête invalide : {nom}", nom=nom))
         if "\r" in e["valeur"] or "\n" in e["valeur"]:
-            raise ErreurRequete(f"Valeur d'en-tête invalide : {nom}")
+            raise ErreurRequete(_i18n("Valeur d'en-tête invalide : {nom}", nom=nom))
         try:
             e["valeur"].encode("latin-1")
         except UnicodeEncodeError:
-            raise ErreurRequete(f"Caractère non permis dans l'en-tête {nom} (accents, emojis…).") from None
+            raise ErreurRequete(_i18n("Caractère non permis dans l'en-tête {nom} (accents, emojis…).",
+                                      nom=nom)) from None
         entetes.append((nom, e["valeur"]))
 
     def poser(nom, valeur, remplacer=False):
@@ -231,9 +273,9 @@ def construire(r):
     if auth["type"] == "bearer":
         jeton = auth["jeton"].strip()
         if not jeton:
-            raise ErreurRequete("Jeton (Bearer) vide.")
+            raise ErreurRequete(_i18n("Jeton (Bearer) vide."))
         if "\r" in jeton or "\n" in jeton:
-            raise ErreurRequete("Jeton invalide.")
+            raise ErreurRequete(_i18n("Jeton invalide."))
         poser("Authorization", "Bearer " + jeton, remplacer=True)
     elif auth["type"] == "basic":
         brut = f"{auth['utilisateur']}:{auth['mot_de_passe']}".encode("utf-8")
@@ -251,7 +293,7 @@ def construire(r):
         corps = urllib.parse.urlencode([(f["cle"], f["valeur"]) for f in c["champs"] if f["actif"] and f["cle"]]).encode("utf-8")
         poser("Content-Type", "application/x-www-form-urlencoded")
     if corps is not None and len(corps) > LIMITE_ENVOI:
-        raise ErreurRequete("Corps trop gros (10 Mo au plus).")
+        raise ErreurRequete(_i18n("Corps trop gros (10 Mo au plus)."))
     poser("User-Agent", AGENT)
     poser("Accept", "*/*")
     return url, entetes, corps
@@ -394,21 +436,24 @@ def executer(r):
     except urllib.error.URLError as e:
         raison = e.reason
         if isinstance(raison, (socket.timeout, TimeoutError)):
-            raise ErreurRequete(f"Pas de réponse après {options['timeout']:g} s (délai dépassé).") from None
+            raise ErreurRequete(_i18n("Pas de réponse après {delai:g} s (délai dépassé).",
+                                      delai=options["timeout"])) from None
         if isinstance(raison, ssl.SSLCertVerificationError):
-            raise ErreurRequete("Certificat refusé : " + (raison.verify_message or str(raison))
-                                + ". Pour un serveur de développement, cochez « Ignorer les erreurs de certificat ».") from None
+            raise ErreurRequete(_i18n("Certificat refusé : {detail}", detail=(raison.verify_message or str(raison))
+                                      + _i18n(". Pour un serveur de développement, cochez « Ignorer les erreurs de certificat »."))) from None
         if isinstance(raison, ssl.SSLError):
-            raise ErreurRequete(f"Erreur TLS : {raison}") from None
+            raise ErreurRequete(_i18n("Erreur TLS : {detail}", detail=raison)) from None
         if isinstance(raison, socket.gaierror):
-            raise ErreurRequete("Serveur introuvable (nom inconnu) : " + (urllib.parse.urlsplit(url).hostname or "")) from None
+            raise ErreurRequete(_i18n("Serveur introuvable (nom inconnu) : {hote}",
+                                      hote=urllib.parse.urlsplit(url).hostname or "")) from None
         if isinstance(raison, ConnectionRefusedError):
-            raise ErreurRequete("Connexion refusée : rien n'écoute à cette adresse.") from None
-        raise ErreurRequete(f"Échec de la connexion : {raison}") from None
+            raise ErreurRequete(_i18n("Connexion refusée : rien n'écoute à cette adresse.")) from None
+        raise ErreurRequete(_i18n("Échec de la connexion : {detail}", detail=raison)) from None
     except (socket.timeout, TimeoutError):
-        raise ErreurRequete(f"Pas de réponse après {options['timeout']:g} s (délai dépassé).") from None
+        raise ErreurRequete(_i18n("Pas de réponse après {delai:g} s (délai dépassé).",
+                                  delai=options["timeout"])) from None
     except (http.client.HTTPException, ConnectionError, OSError) as e:
-        raise ErreurRequete(f"Échec de la connexion : {e}") from None
+        raise ErreurRequete(_i18n("Échec de la connexion : {detail}", detail=e)) from None
     duree = (time.perf_counter() - debut) * 1000
 
     entetes_dict = {k.lower(): v for k, v in entetes_rep}
@@ -573,7 +618,7 @@ def vider_historique(_d=None):
 def enregistrer(d):
     nom = _texte(d.get("nom"), 200).strip()
     if not nom:
-        raise ErreurRequete("Donnez un nom à la requête.")
+        raise ErreurRequete(_i18n("Donnez un nom à la requête."))
     collection = _texte(d.get("collection"), 200).strip()
     r = sans_secret(normaliser(d.get("requete")), garder_auth=False)
     with _verrou:
@@ -585,7 +630,7 @@ def enregistrer(d):
             existante.update(nom=nom, collection=collection, requete=r, date=datetime.now().isoformat(timespec="seconds"))
         else:
             if len(liste) >= MAX_ENREGISTREES:
-                raise ErreurRequete("Trop de requêtes enregistrées : supprimez-en quelques-unes.")
+                raise ErreurRequete(_i18n("Trop de requêtes enregistrées : supprimez-en quelques-unes."))
             existante = {"id": _nouvel_id(), "nom": nom, "collection": collection, "requete": r,
                          "date": datetime.now().isoformat(timespec="seconds")}
             liste.append(existante)
@@ -600,7 +645,7 @@ def supprimer(d):
         avant = len(donnees["enregistrees"])
         donnees["enregistrees"] = [e for e in donnees["enregistrees"] if e.get("id") != ident]
         if len(donnees["enregistrees"]) == avant:
-            raise ErreurRequete("Requête introuvable.")
+            raise ErreurRequete(_i18n("Requête introuvable."))
         _ecrire(donnees)
     return etat()
 
@@ -608,14 +653,14 @@ def supprimer(d):
 def enregistrer_variables(d):
     variables = d.get("variables")
     if not isinstance(variables, dict) or len(variables) > 200:
-        raise ErreurRequete("Variables invalides.")
+        raise ErreurRequete(_i18n("Variables invalides."))
     propres = {}
     for nom, valeur in variables.items():
         nom = str(nom).strip()
         if not nom:
             continue
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.-]{0,60}", nom):
-            raise ErreurRequete(f"Nom de variable invalide : {nom}")
+            raise ErreurRequete(_i18n("Nom de variable invalide : {nom}", nom=nom))
         propres[nom] = _texte(valeur, 20000)
     with _verrou:
         donnees = _lire()

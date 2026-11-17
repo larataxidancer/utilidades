@@ -28,7 +28,8 @@ def paires(nom):
         yield from PAIRE.findall(bloc)
 
 def paires_es(nom):
-    with open(os.path.join(WEB, nom), encoding="utf-8") as f:
+    chemin = os.path.join(WEB, nom) if not os.path.isabs(nom) else nom
+    with open(chemin, encoding="utf-8") as f:
         texte = f.read()
     for bloc in BLOC_ES.findall(texte):
         bloc = re.sub(r"^\s*//.*$", "", bloc, flags=re.M)
@@ -55,12 +56,35 @@ class TestDictionnaires(unittest.TestCase):
                                  f"{nom} : variables différentes entre « {cle} » et « {valeur} »")
 
     def test_traductions_espagnoles_et_variables(self):
-        for nom in ("i18n.js", "reglages.js"):
+        for nom in ("i18n.js", "reglages.js", "notes_rapides.js", "procedures.js"):
             traductions = list(paires_es(nom))
             self.assertTrue(traductions, f"{nom} : aucun dictionnaire espagnol trouvé")
             for cle, valeur in traductions:
                 self.assertEqual(set(re.findall(r"\{(\w+)\}", cle)), set(re.findall(r"\{(\w+)\}", valeur)),
                                  f"{nom} : variables différentes entre « {cle} » et « {valeur} »")
+
+    def test_toutes_les_cles_de_l_interface_traduites_en_espagnol(self):
+        fichiers = [os.path.join(WEB, n) for n in os.listdir(WEB) if n.endswith(".js")] + [PAGE]
+        sources = {}
+        for nom in fichiers:
+            for cle, _ in paires(nom):
+                sources.setdefault(cle, set()).add(os.path.basename(nom))
+        traductions = {cle for nom in fichiers for cle, _ in paires_es(nom)}
+        manquantes = {cle: sources[cle] for cle in sources.keys() - traductions}
+        self.assertFalse(manquantes, f"Traducciones españolas faltantes por archivo: {manquantes}")
+
+    def test_textes_des_nouveaux_onglets_traduits_en_espagnol(self):
+        for nom in ("notes_rapides.js", "procedures.js"):
+            sources = {cle for cle, _ in paires(nom)}
+            traductions = {cle for cle, _ in paires_es(nom)}
+            self.assertFalse(sources - traductions, f"{nom} : traductions espagnoles manquantes : {sources - traductions}")
+
+    def test_textes_du_shell_traduits_en_espagnol(self):
+        page = os.path.join(os.path.dirname(WEB), "hub.html")
+        sources = {cle for cle, _ in paires(page)}
+        traductions = {cle for cle, _ in paires_es("i18n.js")}
+        traductions.update(cle for cle, _ in paires_es(page))
+        self.assertFalse(sources - traductions, f"hub.html : traductions espagnoles manquantes : {sources - traductions}")
 
     @unittest.skipUnless(shutil.which("node"), "node absent")
     def test_langue_espagnole_en_javascript(self):

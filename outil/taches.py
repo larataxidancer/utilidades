@@ -56,10 +56,26 @@ _ANGLAIS = {
     "Échéance à {heure}": "Due at {heure}",
     "Échéance dépassée ({heure})": "Overdue ({heure})",
 }
+_ESPANOL = {
+    "Échéance à {heure}": "Vence a las {heure}",
+    "Échéance dépassée ({heure})": "Vencida ({heure})",
+    "Tâche introuvable.": "No se encontró la tarea.",
+    "Indiquez un titre.": "Escribe un título.",
+    "Échéance invalide.": "La fecha de vencimiento no es válida.",
+    "Heure invalide.": "La hora no es válida.",
+    "{maximum} étiquettes au plus.": "Se permiten como máximo {maximum} etiquetas.",
+    "{maximum} étapes au plus.": "Se permiten como máximo {maximum} pasos.",
+    "Indiquez une date pour l'heure.": "Indica una fecha para la hora.",
+    "Priorité inconnue.": "Prioridad desconocida.",
+    "Répétition inconnue.": "Repetición desconocida.",
+    "Statut inconnu.": "Estado desconocido.",
+    "Étape introuvable.": "No se encontró el paso.",
+}
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if config.langue() == "en" else fr
+    langue = config.langue()
+    texte = _ANGLAIS.get(fr, fr) if langue == "en" else _ESPANOL.get(fr, fr) if langue == "es" else fr
     return texte.format(**valeurs) if valeurs else texte
 
 
@@ -91,7 +107,7 @@ def _ecrire(d):
 def _trouver(d, identifiant):
     t = next((x for x in d["taches"] if x.get("id") == identifiant), None)
     if t is None:
-        raise ValueError("Tâche introuvable.")
+        raise ValueError(_texte("Tâche introuvable."))
     return t
 
 
@@ -105,7 +121,7 @@ def _espaces(valeur, maxi):
 def _titre(valeur):
     titre = _espaces(valeur, MAX_TITRE)
     if not titre:
-        raise ValueError("Indiquez un titre.")
+        raise ValueError(_texte("Indiquez un titre."))
     return titre
 
 
@@ -118,7 +134,7 @@ def _jour(valeur):
     try:
         jour = datetime.datetime.strptime(texte[:10], FORMAT_JOUR).date()
     except ValueError:
-        raise ValueError("Échéance invalide.") from None
+        raise ValueError(_texte("Échéance invalide.")) from None
     heure = texte[11:16] if len(texte) >= 16 and texte[10] in "T " else ""
     return jour.isoformat(), heure
 
@@ -130,7 +146,7 @@ def _heure(valeur):
     try:
         return datetime.datetime.strptime(texte, "%H:%M").strftime("%H:%M")
     except ValueError:
-        raise ValueError("Heure invalide.") from None
+        raise ValueError(_texte("Heure invalide.")) from None
 
 
 def _etiquettes(valeur):
@@ -143,7 +159,7 @@ def _etiquettes(valeur):
             vues.add(e.lower())
             propres.append(e)
     if len(propres) > MAX_ETIQUETTES:
-        raise ValueError(f"{MAX_ETIQUETTES} étiquettes au plus.")
+        raise ValueError(_texte("{maximum} étiquettes au plus.", maximum=MAX_ETIQUETTES))
     return propres
 
 
@@ -158,14 +174,14 @@ def _liste(valeur):
         if texte:
             etapes.append({"id": str(e.get("id") or _nouvel_id())[:20], "texte": texte, "fait": bool(e.get("fait"))})
     if len(etapes) > MAX_ETAPES:
-        raise ValueError(f"{MAX_ETAPES} étapes au plus.")
+        raise ValueError(_texte("{maximum} étapes au plus.", maximum=MAX_ETAPES))
     return etapes
 
 
 def _choix(valeur, possibles, defaut, message):
     valeur = defaut if valeur is None else str(valeur)
     if valeur not in possibles:
-        raise ValueError(message)
+        raise ValueError(_texte(message))
     return valeur
 
 
@@ -194,7 +210,7 @@ def _champs(valeurs, existante=None):
         jour, heure_jointe = _jour(v.get("echeance", base.get("echeance")))
         heure = _heure(v["heure"]) if v.get("heure") else heure_jointe
         if heure and not jour:
-            raise ValueError("Indiquez une date pour l'heure.")
+            raise ValueError(_texte("Indiquez une date pour l'heure."))
         propre["echeance"], propre["heure"] = jour, _heure(heure)
     propre["priorite"] = _choix(v.get("priorite", base.get("priorite")) or None, PRIORITES, "normale", "Priorité inconnue.")
     propre["etiquettes"] = _etiquettes(v.get("etiquettes", base.get("etiquettes")))
@@ -240,7 +256,7 @@ def prochaine_date(echeance, recurrence, aujourdhui, jour_du_mois=None):
         elif recurrence == "mois":
             suivante = _ajouter_mois(depart, n, jour_du_mois)
         else:
-            raise ValueError("Répétition inconnue.")
+            raise ValueError(_texte("Répétition inconnue."))
         if n > 5000:  # garde-fou : jamais de boucle sans fin
             break
     return suivante.isoformat()
@@ -410,7 +426,7 @@ def cocher_etape(identifiant, etape_id, fait=True):
         t = _trouver(d, identifiant)
         etape = next((e for e in t.get("liste", []) if e.get("id") == etape_id), None)
         if etape is None:
-            raise ValueError("Étape introuvable.")
+            raise ValueError(_texte("Étape introuvable."))
         etape["fait"] = bool(fait)
         _ecrire(d)
         return _vue(t, maintenant())

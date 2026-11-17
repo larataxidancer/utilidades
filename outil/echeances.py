@@ -80,6 +80,49 @@ _ANGLAIS = {
     "Contrat": "Contract", "Nom de domaine": "Domain name", "Licence": "Licence", "Loyer": "Rent",
     "Énergie": "Energy", "Banque": "Banking", "Autre": "Other",
 }
+_ESPANOL = {
+    "Échéance : {nom}": "Vencimiento: {nom}",
+    "Échéance dépassée : {nom}": "Vencimiento vencido: {nom}",
+    "{montant} le {date} (aujourd'hui).": "{montant} el {date} (hoy).",
+    "{montant} le {date} (demain).": "{montant} el {date} (mañana).",
+    "{montant} le {date} (dans {n} jours).": "{montant} el {date} (en {n} días).",
+    "{montant} le {date} (en retard de {n} jours).": "{montant} el {date} (con {n} días de retraso).",
+    "Résiliation : {nom}": "Cancelación: {nom}",
+    "Reconduction tacite : pour résilier, prévenir au plus tard le {date} ({quand}).":
+        "Renovación automática: para cancelar, avisa a más tardar el {date} ({quand}).",
+    "aujourd'hui": "hoy", "demain": "mañana", "dans {n} jours": "en {n} días",
+    "Nom": "Nombre", "Catégorie": "Categoría", "Fournisseur": "Proveedor", "Montant": "Importe",
+    "Devise": "Moneda", "Fréquence": "Frecuencia", "Prochaine échéance": "Próximo vencimiento",
+    "Reconduction tacite": "Renovación automática", "Préavis (jours)": "Aviso previo (días)",
+    "Date limite de résiliation": "Fecha límite de cancelación", "Rappel (jours avant)": "Recordatorio (días antes)",
+    "Statut": "Estado", "Moyen de paiement": "Método de pago", "Espace client": "Portal del cliente",
+    "Note": "Nota", "Coût mensuel": "Costo mensual", "Oui": "Sí", "Non": "No",
+    "Mensuelle": "Mensual", "Trimestrielle": "Trimestral", "Annuelle": "Anual",
+    "Tous les {n} mois": "Cada {n} meses", "Date unique": "Fecha única",
+    "Actif": "Activo", "À résilier": "Por cancelar", "Résilié": "Cancelado", "Terminé": "Finalizado",
+    "Logiciel": "Software", "Téléphone et Internet": "Teléfono e Internet", "Assurance": "Seguro",
+    "Contrat": "Contrato", "Nom de domaine": "Nombre de dominio", "Licence": "Licencia", "Loyer": "Alquiler",
+    "Énergie": "Energía", "Banque": "Banco", "Autre": "Otro",
+    "Échéance introuvable.": "No se encontró el vencimiento.",
+    "{nom} invalide.": "{nom} no es válido.",
+    "{nom} : de {mini} à {maxi}.": "{nom}: de {mini} a {maxi}.",
+    "Indiquez un nom.": "Escribe un nombre.",
+    "Catégorie inconnue.": "Categoría desconocida.",
+    "Fréquence inconnue.": "Frecuencia desconocida.",
+    "Indiquez la prochaine échéance.": "Indica el próximo vencimiento.",
+    "Devise invalide (code à trois lettres, ex. EUR).": "La moneda no es válida (código de tres letras, p. ej., EUR).",
+    "Montant invalide.": "El importe no es válido.",
+    "Montant invalide : deux décimales au plus.": "El importe no es válido: se permiten hasta dos decimales.",
+    "Montant trop élevé.": "El importe es demasiado alto.",
+    "Statut inconnu.": "Estado desconocido.",
+    "N'indiquez jamais de numéro de carte ou de compte : par exemple « Carte pro (fin 1234) ».":
+        "Nunca ingreses un número de tarjeta o cuenta; por ejemplo: «Tarjeta de empresa (terminada en 1234)».",
+    "Lien invalide : il doit commencer par https://": "El enlace no es válido: debe comenzar por https://",
+    "Cette échéance n'est plus active.": "Este vencimiento ya no está activo.",
+    "Aucun paiement à annuler.": "No hay ningún pago para cancelar.",
+    "Date": "Fecha", "Nombre de mois": "Cantidad de meses", "Date d'échéance": "Fecha de vencimiento",
+    "Montant": "Importe", "Préavis": "Aviso previo", "Rappel": "Recordatorio",
+}
 LIBELLES_CATEGORIES = {"logiciel": "Logiciel", "telephonie": "Téléphone et Internet", "assurance": "Assurance",
                        "contrat": "Contrat", "domaine": "Nom de domaine", "licence": "Licence", "loyer": "Loyer",
                        "energie": "Énergie", "banque": "Banque", "autre": "Autre"}
@@ -87,7 +130,8 @@ LIBELLES_STATUTS = {"actif": "Actif", "a_resilier": "À résilier", "resilie": "
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if config.langue() == "en" else fr
+    langue = config.langue()
+    texte = _ANGLAIS.get(fr, fr) if langue == "en" else _ESPANOL.get(fr, fr) if langue == "es" else fr
     return texte.format(**valeurs) if valeurs else texte
 
 
@@ -113,7 +157,7 @@ def _date(texte, nom="Date"):
     try:
         return datetime.date.fromisoformat(str(texte or "")[:10])
     except ValueError:
-        raise ValueError(f"{nom} invalide.") from None
+        raise ValueError(_texte("{nom} invalide.", nom=_texte(nom))) from None
 
 
 def periode_mois(e):
@@ -136,7 +180,7 @@ def limite_resiliation(e):
 def centimes(valeur):
     """« 1 234,56 », « 12.5 », 12 → centimes entiers (exacts). ValueError sinon."""
     if isinstance(valeur, bool):
-        raise ValueError("Montant invalide.")
+        raise ValueError(_texte("Montant invalide."))
     if isinstance(valeur, int):
         texte = str(valeur)
     else:
@@ -151,15 +195,15 @@ def centimes(valeur):
     try:
         d = Decimal(texte)
     except InvalidOperation:
-        raise ValueError("Montant invalide.") from None
+        raise ValueError(_texte("Montant invalide.")) from None
     if not d.is_finite() or d < 0:
-        raise ValueError("Montant invalide.")
+        raise ValueError(_texte("Montant invalide."))
     c = d * 100
     if c != c.to_integral_value():
-        raise ValueError("Montant invalide : deux décimales au plus.")
+        raise ValueError(_texte("Montant invalide : deux décimales au plus."))
     c = int(c)
     if c > MAX_MONTANT:
-        raise ValueError("Montant trop élevé.")
+        raise ValueError(_texte("Montant trop élevé."))
     return c
 
 
@@ -208,7 +252,7 @@ def _ecrire(d):
 def _trouver(d, identifiant):
     e = next((x for x in d["elements"] if x.get("id") == identifiant), None)
     if e is None:
-        raise ValueError("Échéance introuvable.")
+        raise ValueError(_texte("Échéance introuvable."))
     return e
 
 
@@ -228,9 +272,9 @@ def _entier(valeur, nom, mini, maxi, defaut):
     try:
         n = int(valeur)
     except (TypeError, ValueError):
-        raise ValueError(f"{nom} invalide.") from None
+        raise ValueError(_texte("{nom} invalide.", nom=_texte(nom))) from None
     if not mini <= n <= maxi:
-        raise ValueError(f"{nom} : de {mini} à {maxi}.")
+        raise ValueError(_texte("{nom} : de {mini} à {maxi}.", nom=_texte(nom), mini=mini, maxi=maxi))
     return n
 
 
@@ -239,33 +283,33 @@ def valider(f, ancienne=None):
     f = f or {}
     nom = _court(f.get("nom"), MAX_NOM)
     if not nom:
-        raise ValueError("Indiquez un nom.")
+        raise ValueError(_texte("Indiquez un nom."))
     categorie = f.get("categorie") or "autre"
     if categorie not in CATEGORIES:
-        raise ValueError("Catégorie inconnue.")
+        raise ValueError(_texte("Catégorie inconnue."))
     frequence = f.get("frequence") or "mensuelle"
     if frequence not in (*FREQUENCES, "mois", "unique"):
-        raise ValueError("Fréquence inconnue.")
+        raise ValueError(_texte("Fréquence inconnue."))
     mois = _entier(f.get("mois"), "Nombre de mois", 1, 120, 1) if frequence == "mois" else None
     if not f.get("prochaine"):
-        raise ValueError("Indiquez la prochaine échéance.")
+        raise ValueError(_texte("Indiquez la prochaine échéance."))
     prochaine = _date(f.get("prochaine"), "Date d'échéance")
     devise = str(f.get("devise") or "EUR").strip().upper()
     if not re.fullmatch(r"[A-Z]{3}", devise):
-        raise ValueError("Devise invalide (code à trois lettres, ex. EUR).")
+        raise ValueError(_texte("Devise invalide (code à trois lettres, ex. EUR)."))
     if f.get("montant") is None and f.get("montant_centimes") is not None:
         montant_centimes = _entier(f.get("montant_centimes"), "Montant", 0, MAX_MONTANT, 0)
     else:
         montant_centimes = centimes(f.get("montant"))
     statut = f.get("statut") or "actif"
     if statut not in STATUTS:
-        raise ValueError("Statut inconnu.")
+        raise ValueError(_texte("Statut inconnu."))
     paiement = _court(f.get("paiement"))
     if _CARTE.search(re.sub(r"[\s.\-]", "", paiement)):
-        raise ValueError("N'indiquez jamais de numéro de carte ou de compte : par exemple « Carte pro (fin 1234) ».")
+        raise ValueError(_texte("N'indiquez jamais de numéro de carte ou de compte : par exemple « Carte pro (fin 1234) »."))
     lien = str(f.get("lien") or "").strip()[:MAX_LIEN]
     if lien and not re.match(r"^https?://[^\s/]+", lien, re.I):
-        raise ValueError("Lien invalide : il doit commencer par https://")
+        raise ValueError(_texte("Lien invalide : il doit commencer par https://"))
     tacite = bool(f.get("tacite")) and frequence != "unique"
     propre = {
         "nom": nom, "categorie": categorie,
@@ -314,7 +358,7 @@ def supprimer(identifiant):
         avant = len(d["elements"])
         d["elements"] = [e for e in d["elements"] if e.get("id") != identifiant]
         if len(d["elements"]) == avant:
-            raise ValueError("Échéance introuvable.")
+            raise ValueError(_texte("Échéance introuvable."))
         d["vues"] = [v for v in d["vues"] if not v.startswith(identifiant + ":")]
         _ecrire(d)
         return True
@@ -322,7 +366,7 @@ def supprimer(identifiant):
 
 def changer_statut(identifiant, statut):
     if statut not in STATUTS:
-        raise ValueError("Statut inconnu.")
+        raise ValueError(_texte("Statut inconnu."))
     with _verrou:
         d = _lire()
         e = _trouver(d, identifiant)
@@ -338,7 +382,7 @@ def payer(identifiant):
         d = _lire()
         e = _trouver(d, identifiant)
         if e["statut"] not in STATUTS_ACTIFS:
-            raise ValueError("Cette échéance n'est plus active.")
+            raise ValueError(_texte("Cette échéance n'est plus active."))
         jour = _date(e["prochaine"])
         e.setdefault("historique", []).append({
             "echeance": e["prochaine"], "le": aujourdhui().isoformat(),
@@ -359,7 +403,7 @@ def annuler_paiement(identifiant):
         d = _lire()
         e = _trouver(d, identifiant)
         if not e.get("historique"):
-            raise ValueError("Aucun paiement à annuler.")
+            raise ValueError(_texte("Aucun paiement à annuler."))
         dernier = e["historique"].pop()
         e["prochaine"] = dernier["echeance"]
         e["statut"] = dernier.get("statut_avant") or "actif"

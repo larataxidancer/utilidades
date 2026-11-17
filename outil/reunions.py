@@ -100,13 +100,68 @@ _ANGLAIS = {
     "Réunion": "Meeting",
     "{a} → {b}": "{a} → {b}",
 }
+_ESPANOL = {
+    "Compte rendu : {titre}": "Acta: {titre}",
+    "Compte rendu : {titre} ({date})": "Acta: {titre} ({date})",
+    "Date : {valeur}": "Fecha: {valeur}",
+    "Lieu : {valeur}": "Lugar: {valeur}",
+    "Visio : {valeur}": "Videollamada: {valeur}",
+    "Participants : {valeur}": "Participantes: {valeur}",
+    "Ordre du jour": "Orden del día", "Notes": "Notas", "Décisions": "Decisiones", "Actions": "Acciones",
+    "pour le {date}": "para el {date}",
+    "Réunion : {titre}": "Reunión: {titre}",
+    "Dans {n} min · {heure}": "En {n} min · {heure}",
+    "Maintenant · {heure}": "Ahora · {heure}",
+    "Départ demain : {destination}": "Salida mañana: {destination}",
+    "Départ aujourd'hui : {destination}": "Salida hoy: {destination}",
+    "{n} élément(s) à cocher dans la liste": "{n} elemento(s) por marcar en la lista",
+    "Feuille de route : {destination}": "Itinerario: {destination}",
+    "Du {debut} au {fin}": "Del {debut} al {fin}", "Le {date}": "El {date}",
+    "Voyageurs : {valeur}": "Viajeros: {valeur}",
+    "Départ pour {destination}": "Salida hacia {destination}",
+    "Retour de {destination}": "Regreso de {destination}",
+    "Déplacement : {destination}": "Viaje: {destination}", "Retour : {destination}": "Regreso: {destination}",
+    "Arrivée à l'hébergement : {nom}": "Llegada al alojamiento: {nom}",
+    "Départ de l'hébergement : {nom}": "Salida del alojamiento: {nom}",
+    "Hébergement": "Alojamiento", "arrivée {heure}": "llegada {heure}",
+    "arrivée le {date} à {heure}": "llegada el {date} a las {heure}",
+    "n° {valeur}": "n.º {valeur}", "réf. {valeur}": "ref. {valeur}",
+    "Sans date": "Sin fecha", "Documents": "Documentos", "Liste de contrôle": "Lista de verificación",
+    "Budget prévu : {valeur}": "Presupuesto previsto: {valeur}", "Note : {valeur}": "Nota: {valeur}",
+    "Avion": "Avión", "Train": "Tren", "Voiture": "Auto", "Trajet": "Trayecto", "Réunion": "Reunión",
+    "{a} → {b}": "{a} → {b}",
+    "Date de la réunion": "Fecha de la reunión", "Date de départ": "Fecha de salida",
+    "Date de retour": "Fecha de regreso", "Heure de départ": "Hora de salida",
+    "Heure d'arrivée": "Hora de llegada", "Date d'arrivée": "Fecha de llegada", "Date": "Fecha",
+    "{nom} manquante.": "Falta {nom}.", "{nom} invalide.": "{nom} no es válida.",
+    "Adresse e-mail invalide : {email}": "La dirección de correo electrónico no es válida: {email}",
+    "Réunion invalide.": "La reunión no es válida.", "Donnez un titre à la réunion.": "Escribe un título para la reunión.",
+    "Durée invalide.": "La duración no es válida.",
+    "La durée doit être comprise entre 5 minutes et 24 heures.": "La duración debe ser de entre 5 minutos y 24 horas.",
+    "Lien de visio invalide (il commence par https://).": "El enlace de videollamada no es válido (debe comenzar por https://).",
+    "Ce type de fichier ne peut pas être joint : {nom}": "No se puede adjuntar este tipo de archivo: {nom}",
+    "Déplacement invalide.": "El viaje no es válido.", "Indiquez la destination.": "Indica el destino.",
+    "Le retour doit être après le départ.": "La fecha de regreso debe ser posterior a la de salida.",
+    "Une arrivée est avant son départ.": "Una llegada es anterior a su salida.",
+    "Hébergement : le départ doit être après l'arrivée.": "Alojamiento: la salida debe ser posterior a la llegada.",
+    "Budget invalide.": "El presupuesto no es válido.",
+    "Élément introuvable (supprimé entre-temps ?).": "No se encontró el elemento (¿se eliminó mientras tanto?).",
+    "Réunion introuvable.": "No se encontró la reunión.", "Déplacement introuvable.": "No se encontró el viaje.",
+    "Ce document n'est pas lié à ce déplacement.": "Este documento no está vinculado a este viaje.",
+    "Fichier introuvable : {chemin}": "No se encontró el archivo: {chemin}",
+    "Genre inconnu.": "Tipo desconocido.", "Identifiants invalides.": "Los identificadores no son válidos.",
+    "Choisir des fichiers": "Seleccionar archivos",
+}
 LIBELLES_TYPES = {"avion": "Avion", "train": "Train", "voiture": "Voiture", "autre": "Trajet"}
 JOURS = {"fr": ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"],
-         "en": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+         "en": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+         "es": ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]}
 MOIS = {"fr": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre",
                "octobre", "novembre", "décembre"],
         "en": ["January", "February", "March", "April", "May", "June", "July", "August", "September",
-               "October", "November", "December"]}
+               "October", "November", "December"],
+        "es": ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
+               "octubre", "noviembre", "diciembre"]}
 
 
 def _langue():
@@ -117,13 +172,14 @@ def _langue():
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if _langue() == "en" else fr
+    langue = _langue()
+    texte = _ANGLAIS.get(fr, fr) if langue == "en" else _ESPANOL.get(fr, fr) if langue == "es" else fr
     return texte.format(**valeurs) if valeurs else texte
 
 
 def _date_longue(jour):
     """« mardi 10 novembre 2026 » / « Tuesday 10 November 2026 »."""
-    langue = "en" if _langue() == "en" else "fr"
+    langue = _langue() if _langue() in ("en", "es") else "fr"
     return f"{JOURS[langue][jour.weekday()]} {jour.day} {MOIS[langue][jour.month - 1]} {jour.year}"
 
 
@@ -173,24 +229,24 @@ def _minute(valeur, nom, obligatoire=True):
     texte = str(valeur or "").strip()
     if not texte:
         if obligatoire:
-            raise ValueError(f"{nom} manquante.")
+            raise ValueError(_texte("{nom} manquante.", nom=_texte(nom)))
         return ""
     try:
         return datetime.datetime.strptime(texte[:16], FORMAT_MINUTE).strftime(FORMAT_MINUTE)
     except ValueError:
-        raise ValueError(f"{nom} invalide.") from None
+        raise ValueError(_texte("{nom} invalide.", nom=_texte(nom))) from None
 
 
 def _jour(valeur, nom, obligatoire=True):
     texte = str(valeur or "").strip()
     if not texte:
         if obligatoire:
-            raise ValueError(f"{nom} manquante.")
+            raise ValueError(_texte("{nom} manquante.", nom=_texte(nom)))
         return ""
     try:
         return datetime.date.fromisoformat(texte[:10]).isoformat()
     except ValueError:
-        raise ValueError(f"{nom} invalide.") from None
+        raise ValueError(_texte("{nom} invalide.", nom=_texte(nom))) from None
 
 
 def _liste(valeur, maxi):
@@ -208,7 +264,7 @@ def _participant(p):
     nom = _txt(p.get("nom"), 120)
     email = _txt(p.get("email"), 200)
     if email and not _EMAIL.match(email):
-        raise ValueError(f"Adresse e-mail invalide : {email}")
+        raise ValueError(_texte("Adresse e-mail invalide : {email}", email=email))
     if not nom and not email:
         return None
     contact = p.get("contact_id")
@@ -230,19 +286,19 @@ def _points(valeur, maxi_texte=500):
 
 def _valider_reunion(r):
     if not isinstance(r, dict):
-        raise ValueError("Réunion invalide.")
+        raise ValueError(_texte("Réunion invalide."))
     titre = _txt(r.get("titre"), 200)
     if not titre:
-        raise ValueError("Donnez un titre à la réunion.")
+        raise ValueError(_texte("Donnez un titre à la réunion."))
     try:
         duree = int(r.get("duree") if r.get("duree") not in (None, "") else 60)
     except (TypeError, ValueError):
-        raise ValueError("Durée invalide.") from None
+        raise ValueError(_texte("Durée invalide.")) from None
     if not 5 <= duree <= 24 * 60:
-        raise ValueError("La durée doit être comprise entre 5 minutes et 24 heures.")
+        raise ValueError(_texte("La durée doit être comprise entre 5 minutes et 24 heures."))
     lien = _txt(r.get("lien"), 500)
     if lien and not re.match(r"^https?://\S+$", lien, re.I):
-        raise ValueError("Lien de visio invalide (il commence par https://).")
+        raise ValueError(_texte("Lien de visio invalide (il commence par https://)."))
     participants = []
     for p in _liste(r.get("participants"), 100):
         propre = _participant(p)
@@ -280,20 +336,20 @@ def _chemin_document(chemin):
         return ""
     chemin = os.path.normpath(chemin)
     if os.path.splitext(chemin)[1].lower() in EXTENSIONS_REFUSEES:
-        raise ValueError(f"Ce type de fichier ne peut pas être joint : {os.path.basename(chemin)}")
+        raise ValueError(_texte("Ce type de fichier ne peut pas être joint : {nom}", nom=os.path.basename(chemin)))
     return chemin[:1000]
 
 
 def _valider_deplacement(dep):
     if not isinstance(dep, dict):
-        raise ValueError("Déplacement invalide.")
+        raise ValueError(_texte("Déplacement invalide."))
     destination = _txt(dep.get("destination"), 200)
     if not destination:
-        raise ValueError("Indiquez la destination.")
+        raise ValueError(_texte("Indiquez la destination."))
     depart = _jour(dep.get("depart"), "Date de départ")
     retour = _jour(dep.get("retour"), "Date de retour", obligatoire=False)
     if retour and retour < depart:
-        raise ValueError("Le retour doit être après le départ.")
+        raise ValueError(_texte("Le retour doit être après le départ."))
     etapes = []
     for e in _liste(dep.get("etapes"), 50):
         if not isinstance(e, dict):
@@ -306,7 +362,7 @@ def _valider_deplacement(dep):
                   "numero": _txt(e.get("numero"), 60), "reference": _txt(e.get("reference"), 60),
                   "note": _txt(e.get("note"), 300)}
         if propre["depart"] and propre["arrivee"] and propre["arrivee"] < propre["depart"]:
-            raise ValueError("Une arrivée est avant son départ.")
+            raise ValueError(_texte("Une arrivée est avant son départ."))
         etapes.append(propre)
     hebergements = []
     for h in _liste(dep.get("hebergements"), 20):
@@ -320,7 +376,7 @@ def _valider_deplacement(dep):
         if not propre["nom"] and not propre["adresse"]:
             continue
         if propre["arrivee"] and propre["depart"] and propre["depart"] < propre["arrivee"]:
-            raise ValueError("Hébergement : le départ doit être après l'arrivée.")
+            raise ValueError(_texte("Hébergement : le départ doit être après l'arrivée."))
         hebergements.append(propre)
     documents, vus = [], set()
     for doc in _liste(dep.get("documents"), 50):
@@ -335,9 +391,9 @@ def _valider_deplacement(dep):
         try:
             budget = round(float(str(budget).replace(",", ".").replace(" ", "")), 2)
         except ValueError:
-            raise ValueError("Budget invalide.") from None
+            raise ValueError(_texte("Budget invalide.")) from None
         if budget < 0 or budget != budget or budget > 1e9:
-            raise ValueError("Budget invalide.")
+            raise ValueError(_texte("Budget invalide."))
     return {
         "destination": destination, "depart": depart, "retour": retour,
         "voyageurs": [v for v in (_txt(x, 120) for x in _liste(dep.get("voyageurs"), 50)) if v],
@@ -359,7 +415,7 @@ def _enregistrer(cle, element, propre):
         if identifiant:
             existant = next((x for x in d[cle] if x.get("id") == identifiant), None)
             if existant is None:
-                raise ValueError("Élément introuvable (supprimé entre-temps ?).")
+                raise ValueError(_texte("Élément introuvable (supprimé entre-temps ?)."))
             existant.update(propre)
             existant["modifie"] = horodatage
             resultat = existant
@@ -393,7 +449,7 @@ def _trouver(cle, identifiant):
     with _verrou:
         element = next((x for x in _lire()[cle] if x.get("id") == identifiant), None)
     if element is None:
-        raise ValueError("Réunion introuvable." if cle == "reunions" else "Déplacement introuvable.")
+        raise ValueError(_texte("Réunion introuvable." if cle == "reunions" else "Déplacement introuvable."))
     return element
 
 
@@ -454,7 +510,7 @@ def compte_rendu(identifiant):
     section(_texte("Décisions"), [f"- {x}" for x in r.get("decisions") or []])
     actions = []
     for a in r.get("actions") or []:
-        deux_points = ":" if _langue() == "en" else " :"
+        deux_points = " :" if _langue() == "fr" else ":"
         if a.get("qui") and a.get("quoi"):
             texte = f"- {a['qui']}{deux_points} {a['quoi']}"
         else:
@@ -612,11 +668,11 @@ def _document_du_deplacement(identifiant, chemin):
     dep = _trouver("deplacements", identifiant)
     chemin = os.path.normpath(str(chemin or ""))
     if not any(os.path.normcase(doc["chemin"]) == os.path.normcase(chemin) for doc in dep.get("documents") or []):
-        raise ValueError("Ce document n'est pas lié à ce déplacement.")
+        raise ValueError(_texte("Ce document n'est pas lié à ce déplacement."))
     if os.path.splitext(chemin)[1].lower() in EXTENSIONS_REFUSEES:
-        raise ValueError(f"Ce type de fichier ne peut pas être joint : {os.path.basename(chemin)}")
+        raise ValueError(_texte("Ce type de fichier ne peut pas être joint : {nom}", nom=os.path.basename(chemin)))
     if not os.path.exists(chemin):
-        raise ValueError(f"Fichier introuvable : {chemin}")
+        raise ValueError(_texte("Fichier introuvable : {chemin}", chemin=chemin))
     return chemin
 
 
@@ -685,7 +741,7 @@ def elements_agenda(genre, identifiant):
                                           "couleur": COULEUR_DEPLACEMENT, "rappel_minutes": None,
                                           "lieu": e.get("de") or "", "notes": _detail_etape(e)}
     else:
-        raise ValueError("Genre inconnu.")
+        raise ValueError(_texte("Genre inconnu."))
     connus = r.get("agenda_ids") or {}
     elements = []
     for cle, element in voulus.items():
@@ -700,15 +756,15 @@ def lier_agenda(genre, identifiant, ids):
     """Garde les identifiants des rendez-vous créés dans l'agenda."""
     cle = {"reunion": "reunions", "deplacement": "deplacements"}.get(genre)
     if not cle:
-        raise ValueError("Genre inconnu.")
+        raise ValueError(_texte("Genre inconnu."))
     if not isinstance(ids, dict):
-        raise ValueError("Identifiants invalides.")
+        raise ValueError(_texte("Identifiants invalides."))
     propres = {str(k)[:60]: str(v)[:60] for k, v in ids.items() if v}
     with _verrou:
         d = _lire()
         element = next((x for x in d[cle] if x.get("id") == identifiant), None)
         if element is None:
-            raise ValueError("Réunion introuvable." if cle == "reunions" else "Déplacement introuvable.")
+            raise ValueError(_texte("Réunion introuvable." if cle == "reunions" else "Déplacement introuvable."))
         element["agenda_ids"] = propres
         _ecrire(d)
         return {"agenda_ids": propres}

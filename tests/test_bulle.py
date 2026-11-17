@@ -18,6 +18,10 @@ class TestBulle(unittest.TestCase):
             self.assertEqual(bulle.tr("Projets"), "Projects")
             self.assertEqual(bulle.tr("Arrêter {nom} ?", nom="x"), "Stop x?")
             self.assertEqual(bulle.tr("Texte inconnu"), "Texte inconnu", "un texte sans traduction reste tel quel")
+        with ConfigTemporaire({"langue": "es"}):
+            self.assertEqual(bulle.tr("Missions"), "Misiones")
+            self.assertEqual(bulle.tr("Note rapide"), "Nota rápida")
+            self.assertEqual(bulle.tr("Arrêter"), "Detener")
 
     def test_modules_facultatifs(self):
         self.assertIsNone(bulle.module("module_qui_n_existe_pas"), "un module absent ne doit pas faire planter la bulle")

@@ -46,8 +46,8 @@ CENT = Decimal("0.01")
 ZERO = Decimal("0")
 MAX_MONTANT = Decimal("999999999999")
 # Devises proposées et leur nombre de décimales (MGA : sans centimes).
-DEVISES = {"EUR": 2, "USD": 2, "MGA": 0}
-SYMBOLES = {"EUR": "€", "USD": "$", "MGA": "Ar"}
+DEVISES = {"EUR": 2, "USD": 2, "COP": 2, "MGA": 0}
+SYMBOLES = {"EUR": "€", "USD": "$", "COP": "COP", "MGA": "Ar"}
 PAIEMENTS = ("carte", "especes", "virement", "paypal", "mobile_money", "autre")
 STATUTS = ("a_rembourser", "remboursee", "refacturee")
 COULEURS = ("violet", "ambre", "bleu", "corail", "menthe", "rouge", "gris")
@@ -89,13 +89,25 @@ _ANGLAIS = {
     "Budget dépassé": "Budget exceeded",
     "Dépensé {depense} sur {budget} ce mois-ci.": "Spent {depense} of {budget} this month.",
 }
+_ESPAGNOL = {
+    "Date": "Fecha", "Description": "Descripción", "Catégorie": "Categoría", "Montant": "Importe",
+    "Devise": "Moneda", "Paiement": "Pago", "Professionnelle": "Profesional", "Client": "Cliente",
+    "Statut": "Estado", "Justificatif": "Comprobante", "Note": "Nota", "Total": "Total",
+    "Oui": "Sí", "Non": "No",
+    "À rembourser": "Por reembolsar", "Remboursée": "Reembolsada", "Refacturée": "Refacturada",
+    "Carte bancaire": "Tarjeta bancaria", "Espèces": "Efectivo", "Virement": "Transferencia", "PayPal": "PayPal",
+    "Mobile Money": "Dinero móvil", "Autre": "Otro",
+    "Budget dépassé": "Presupuesto excedido",
+    "Dépensé {depense} sur {budget} ce mois-ci.": "Gastado {depense} de {budget} este mes.",
+}
 LIBELLES_STATUTS = {"a_rembourser": "À rembourser", "remboursee": "Remboursée", "refacturee": "Refacturée"}
 LIBELLES_PAIEMENTS = {"carte": "Carte bancaire", "especes": "Espèces", "virement": "Virement", "paypal": "PayPal",
                       "mobile_money": "Mobile Money", "autre": "Autre"}
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if config.langue() == "en" else fr
+    langue = config.langue()
+    texte = (_ANGLAIS if langue == "en" else _ESPAGNOL if langue == "es" else {}).get(fr, fr)
     return texte.format(**valeurs) if valeurs else texte
 
 
@@ -1123,9 +1135,13 @@ def _format(montant, code):
     if chiffres and valeur == valeur.to_integral_value():
         chiffres = 0
     texte = f"{valeur:,.{chiffres}f}"
-    if config.langue() == "en":
-        return f"{SYMBOLES[code]}{texte}" if code != "MGA" else f"{texte} Ar"
-    return texte.replace(",", " ").replace(".", ",") + " " + SYMBOLES[code]
+    langue = config.langue()
+    if langue == "en":
+        return f"{SYMBOLES[code]}{texte}" if code not in ("MGA", "COP") else f"{texte} {SYMBOLES[code]}"
+    separateur = "." if langue == "es" else " "
+    entier, point, fraction = texte.partition(".")
+    entier = entier.replace(",", separateur)
+    return entier + ("," + fraction if point else "") + " " + SYMBOLES[code]
 
 
 def alertes_dues():

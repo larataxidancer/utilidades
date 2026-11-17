@@ -19,10 +19,39 @@ import shutil
 import subprocess
 import sys
 
+import config
 import systeme
 
 # Programme installé (Mes outils.exe ou AppImage, sans Python) ou code source.
 GELE = bool(getattr(sys, "frozen", False))
+
+_ESPAGNOL = {
+    "Raccourci inconnu.": "Acceso directo desconocido.",
+    "Dossier Windows introuvable : {genre}": "No se encontró la carpeta de Windows: {genre}",
+    "Raccourci impossible à créer : {detail}": "No se pudo crear el acceso directo: {detail}",
+    "Python {version} ou plus récent (ici {actuel})": "Python {version} o posterior (versión actual: {actuel})",
+    "Il manque :": "Falta:",
+    "Mes outils : vérification…": "Mes outils: comprobando…",
+    "  Raccourci créé : {nom}": "  Acceso directo creado: {nom}",
+    "Démarrage de Windows": "Inicio de Windows",
+    "Menu des applications": "Menú de aplicaciones",
+    "Démarrage avec la session": "Inicio de sesión",
+    "Bureau": "Escritorio",
+    "bureau": "el escritorio",
+    "demarrage": "el inicio",
+    "tkinter (cocher « tcl/tk » dans l'installateur de python.org)":
+        "tkinter (marca «tcl/tk» en el instalador de python.org)",
+    "tkinter (sudo apt install python3-tk)": "tkinter (sudo apt install python3-tk)",
+    "la bibliothèque {paquet} (pip install -r requirements.txt)":
+        "la biblioteca {paquet} (pip install -r requirements.txt)",
+    "Installation terminée. La bulle 🧰 va apparaître.": "La instalación terminó. Aparecerá la burbuja 🧰.",
+    "Installation terminée. La bulle va apparaître.": "La instalación terminó. Aparecerá la burbuja.",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
 ICI = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(sys.executable) if GELE else os.path.dirname(ICI)
 NOM_RACCOURCI = "Mes outils.lnk"
@@ -51,7 +80,7 @@ def dossier_special(genre):
     OneDrive)."""
     tampon = ctypes.create_unicode_buffer(260)
     if ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL[genre], None, 0, tampon) != 0:
-        raise RuntimeError(f"Dossier Windows introuvable : {genre}")
+        raise RuntimeError(_i18n("Dossier Windows introuvable : {genre}", genre=_i18n(genre)))
     return tampon.value
 
 
@@ -91,7 +120,8 @@ def creer_raccourci(genre):
     r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script], env=env,
                        capture_output=True, text=True, timeout=30, creationflags=CREATE_NO_WINDOW)
     if r.returncode != 0 or not os.path.isfile(cible):
-        raise RuntimeError("Raccourci impossible à créer : " + (r.stderr or "").strip()[:200])
+        raise RuntimeError(_i18n("Raccourci impossible à créer : {detail}",
+                                 detail=(r.stderr or "").strip()[:200]))
     return cible
 
 
@@ -129,7 +159,7 @@ def chemin_desktop(genre):
         return os.path.join(_donnees_xdg(), "applications", NOM_DESKTOP)
     if genre == "demarrage":
         return os.path.join(_config_xdg(), "autostart", NOM_DESKTOP)
-    raise ValueError("Raccourci inconnu.")
+    raise ValueError(_i18n("Raccourci inconnu."))
 
 
 def chemin_icone_linux():
@@ -169,8 +199,10 @@ def contenu_desktop(genre, commande=None, icone=None):
         f"Name={systeme.NOM_APPLI}",
         "GenericName=Tableau de bord",
         "GenericName[en]=Dashboard",
+        "GenericName[es]=Panel de control",
         "Comment=Tableau de bord : outils, mails, agenda, notes, projets",
         "Comment[en]=Dashboard: tools, mail, calendar, notes, projects",
+        "Comment[es]=Panel de control: herramientas, correo, agenda, notas y proyectos",
         "Exec=" + " ".join(argument_exec(a) for a in commande),
         f"Icon={icone}",
         "Terminal=false",
@@ -211,7 +243,7 @@ def creer_desktop(genre):
         os.chmod(provisoire, 0o755)  # certains bureaux exigent un .desktop exécutable
         os.replace(provisoire, cible)
     except OSError as erreur:
-        raise RuntimeError(f"Raccourci impossible à créer : {erreur}") from None
+        raise RuntimeError(_i18n("Raccourci impossible à créer : {detail}", detail=erreur)) from None
     return cible
 
 
@@ -252,21 +284,22 @@ def verifier():
     if GELE:
         return manque  # tout est déjà dans le programme installé
     if sys.version_info < (3, 10):
-        manque.append(f"Python 3.10 ou plus récent (ici {sys.version.split()[0]})")
+        manque.append(_i18n("Python {version} ou plus récent (ici {actuel})",
+                            version="3.10", actuel=sys.version.split()[0]))
     if importlib.util.find_spec("tkinter") is None:
-        manque.append("tkinter (cocher « tcl/tk » dans l'installateur de python.org)" if systeme.WINDOWS
-                      else "tkinter (sudo apt install python3-tk)")
+        manque.append(_i18n("tkinter (cocher « tcl/tk » dans l'installateur de python.org)" if systeme.WINDOWS
+                            else "tkinter (sudo apt install python3-tk)"))
     for module, paquet in BIBLIOTHEQUES.items():
         if importlib.util.find_spec(module) is None:
-            manque.append(f"la bibliothèque {paquet} (pip install -r requirements.txt)")
+            manque.append(_i18n("la bibliothèque {paquet} (pip install -r requirements.txt)", paquet=paquet))
     return manque
 
 
 def installer():
-    print("Mes outils : vérification…")
+    print(_i18n("Mes outils : vérification…"))
     manque = verifier()
     if manque:
-        print("Il manque :")
+        print(_i18n("Il manque :"))
         for m in manque:
             print("  -", m)
         return 1
@@ -275,11 +308,11 @@ def installer():
     for genre, nom in noms:
         try:
             creer_raccourci(genre)
-            print(f"  Raccourci créé : {nom}")
+            print(_i18n("  Raccourci créé : {nom}", nom=_i18n(nom)))
         except RuntimeError as e:
             print(f"  {nom} : {e}")
-    print("Installation terminée. La bulle 🧰 va apparaître." if systeme.WINDOWS
-          else "Installation terminée. La bulle va apparaître.")
+    print(_i18n("Installation terminée. La bulle 🧰 va apparaître." if systeme.WINDOWS
+                else "Installation terminée. La bulle va apparaître."))
     return 0
 
 
@@ -302,5 +335,7 @@ if __name__ == "__main__":
         sys.exit(1 if problemes else 0)
     if "--installer" in sys.argv:
         sys.exit(installer())
-    print("Usage : python outil\\installation.py --installer | --verifier" if systeme.WINDOWS
-          else "Usage : python3 outil/installation.py --installer | --verifier")
+    print(("Uso: python outil\\installation.py --installer | --verifier" if systeme.WINDOWS else
+           "Uso: python3 outil/installation.py --installer | --verifier") if config.langue() == "es" else (
+        "Usage : python outil\\installation.py --installer | --verifier" if systeme.WINDOWS else
+        "Usage : python3 outil/installation.py --installer | --verifier"))

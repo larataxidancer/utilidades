@@ -35,6 +35,41 @@ HORS_DU_JOB = 0x01000000     # CREATE_BREAKAWAY_FROM_JOB
 PRESENCES = ("bulle_icone", "bulle", "icone")
 NOM_APPIMAGE = "Mes-outils-x86_64.AppImage"
 
+_ESPAGNOL = {
+    "Langue inconnue.": "Idioma desconocido.",
+    "Thème inconnu.": "Tema desconocido.",
+    "Liste d'applications invalide.": "La lista de aplicaciones no es válida.",
+    "Profil inconnu.": "Perfil desconocido.",
+    "Liste d'onglets invalide.": "La lista de pestañas no es válida.",
+    "Affichage inconnu.": "Visualización desconocida.",
+    "Raccourci inconnu.": "Acceso directo desconocido.",
+    "Des fichiers de « Mes outils » ont été modifiés sur ce PC : mise à jour annulée.":
+        "Se modificaron archivos de «Mes outils» en este equipo: se canceló la actualización.",
+    "Installateur introuvable dans la dernière version publiée.": "No se encontró el instalador en la última versión publicada.",
+    "Le fichier téléchargé n'est pas un installateur valide.": "El archivo descargado no es un instalador válido.",
+    "AppImage introuvable dans la dernière version publiée.": "No se encontró la AppImage en la última versión publicada.",
+    "Le fichier téléchargé n'est pas une AppImage valide.": "El archivo descargado no es una AppImage válida.",
+    "Aucune version publiée pour l'instant.": "Aún no se ha publicado ninguna versión.",
+    "Le téléchargement de la mise à jour est impossible (Internet ?).": "No se pudo descargar la actualización (¿Internet?).",
+    "Téléchargement de la mise à jour impossible (Internet ?).": "No se pudo descargar la actualización (¿Internet?).",
+    "GitHub ne répond pas (erreur {code}).": "GitHub no responde (error {code}).",
+    "Pas de connexion à GitHub (Internet ?).": "No hay conexión con GitHub (¿Internet?).",
+    "Le dossier de l'AppImage n'est pas modifiable ({detail}) : téléchargez la nouvelle version depuis GitHub.":
+        "No se puede modificar la carpeta de la AppImage ({detail}): descarga la nueva versión desde GitHub.",
+    "Installation automatique réservée au programme installé (AppImage).":
+        "La instalación automática solo está disponible para el programa instalado (AppImage).",
+    "La mise à jour a échoué : {detail}": "No se pudo actualizar: {detail}",
+    "Le dossier de l'AppImage n'est pas modifiable ({dossier}) : téléchargez la nouvelle version depuis GitHub.":
+        "No se puede modificar la carpeta de la AppImage ({dossier}): descarga la nueva versión desde GitHub.",
+    "Installation automatique réservée au programme installé (Setup.exe).":
+        "La instalación automática solo está disponible para el programa instalado (Setup.exe).",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
+
 
 def _git(*args, delai=60):
     return subprocess.run(["git", "-C", config.RACINE, *args], capture_output=True, text=True,
@@ -82,31 +117,31 @@ def enregistrer(d):
         valeurs["prenom"] = str(d["prenom"] or "").strip()[:40]
     if "langue" in d:
         if d["langue"] not in config.LANGUES:
-            raise ValueError("Langue inconnue.")
+            raise ValueError(_i18n("Langue inconnue."))
         valeurs["langue"] = d["langue"]
     if "theme" in d:
         if d["theme"] not in config.THEMES:
-            raise ValueError("Thème inconnu.")
+            raise ValueError(_i18n("Thème inconnu."))
         valeurs["theme"] = d["theme"]
     if "apps_actives" in d:
         apps = d["apps_actives"]
         if apps is not None and (not isinstance(apps, list) or not all(isinstance(n, str) and n.isidentifier() for n in apps)):
-            raise ValueError("Liste d'applications invalide.")
+            raise ValueError(_i18n("Liste d'applications invalide."))
         valeurs["apps_actives"] = None if apps is None else sorted(set(apps) - set(config.APPS_FIXES))
     if "profil" in d:
         if d["profil"] not in config.PROFILS:
-            raise ValueError("Profil inconnu.")
+            raise ValueError(_i18n("Profil inconnu."))
         valeurs["profil"] = d["profil"]
     if "assistant_fait" in d:
         valeurs["assistant_fait"] = bool(d["assistant_fait"])
     if "onglets_masques" in d:
         masques = d["onglets_masques"] or []
         if not isinstance(masques, list) or not all(isinstance(n, str) and n.isidentifier() for n in masques):
-            raise ValueError("Liste d'onglets invalide.")
+            raise ValueError(_i18n("Liste d'onglets invalide."))
         valeurs["onglets_masques"] = [n for n in masques if n not in ("accueil", "reglages")]
     if "presence" in d:
         if d["presence"] not in PRESENCES:
-            raise ValueError("Affichage inconnu.")
+            raise ValueError(_i18n("Affichage inconnu."))
         valeurs["presence"] = d["presence"]
     config.modifier(**valeurs)
     return lire()
@@ -120,7 +155,7 @@ def dossiers(d):
 def raccourci(d):
     genre = d.get("genre")
     if genre not in installation.genres():
-        raise ValueError("Raccourci inconnu.")
+        raise ValueError(_i18n("Raccourci inconnu."))
     if d.get("actif"):
         installation.creer_raccourci(genre)
     else:
@@ -144,10 +179,10 @@ def derniere_version():
             d = json.load(r)
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            raise ValueError("Aucune version publiée pour l'instant.") from None
-        raise ValueError(f"GitHub ne répond pas (erreur {e.code}).") from None
+            raise ValueError(_i18n("Aucune version publiée pour l'instant.")) from None
+        raise ValueError(_i18n("GitHub ne répond pas (erreur {code}).", code=e.code)) from None
     except OSError:
-        raise ValueError("Pas de connexion à GitHub (Internet ?).") from None
+        raise ValueError(_i18n("Pas de connexion à GitHub (Internet ?).")) from None
     fichiers = [(str(a.get("name", "")), a.get("browser_download_url")) for a in d.get("assets") or []]
     setup = next((url for nom, url in fichiers if nom.lower().endswith(".exe")), None)
     appimage = next((url for nom, url in fichiers if nom == NOM_APPIMAGE), None) or \
@@ -178,11 +213,12 @@ def mise_a_jour(_d=None):
                     "automatique": installation_automatique_possible(info), "systeme": nom_systeme()}
         return {"change": False}
     if _git("status", "--porcelain", "--untracked-files=no").stdout.strip():
-        raise ValueError("Des fichiers de « Mes outils » ont été modifiés sur ce PC : mise à jour annulée.")
+        raise ValueError(_i18n("Des fichiers de « Mes outils » ont été modifiés sur ce PC : mise à jour annulée."))
     avant = _git("rev-parse", "HEAD").stdout.strip()
     r = _git("pull", "--ff-only", delai=120)
     if r.returncode != 0:
-        raise RuntimeError("La mise à jour a échoué : " + (r.stderr or r.stdout).strip()[:300])
+        raise RuntimeError(_i18n("La mise à jour a échoué : {detail}",
+                                 detail=(r.stderr or r.stdout).strip()[:300]))
     apres = _git("rev-parse", "HEAD").stdout.strip()
     return {"change": avant != apres, "message": (r.stdout or "").strip()[:500]}
 
@@ -207,14 +243,14 @@ def _telecharger(url, chemin):
                         break
                     f.write(bloc)
         except OSError:
-            raise ValueError("Téléchargement de la mise à jour impossible (Internet ?).") from None
+            raise ValueError(_i18n("Téléchargement de la mise à jour impossible (Internet ?).")) from None
 
 
 def telecharger_installateur(url, version):
     """Télécharge Mes-outils-Setup.exe dans le dossier temporaire et vérifie
     que c'est bien un programme Windows."""
     if not url or not url.startswith(PREFIXE_SETUP):
-        raise ValueError("Installateur introuvable dans la dernière version publiée.")
+        raise ValueError(_i18n("Installateur introuvable dans la dernière version publiée."))
     dossier = os.path.join(tempfile.gettempdir(), "mes-outils-mise-a-jour")
     os.makedirs(dossier, exist_ok=True)
     chemin = os.path.join(dossier, f"Mes-outils-Setup-{re.sub(r'[^0-9.]', '', version)}.exe")
@@ -229,7 +265,7 @@ def telecharger_installateur(url, version):
         debut = f.read(2)
     if debut != b"MZ" or os.path.getsize(partiel) < 1_000_000:
         os.remove(partiel)
-        raise ValueError("Le fichier téléchargé n'est pas un installateur valide.")
+        raise ValueError(_i18n("Le fichier téléchargé n'est pas un installateur valide."))
     os.replace(partiel, chemin)
     return chemin
 
@@ -270,20 +306,20 @@ def telecharger_appimage(url, destination):
     vérifie, la rend exécutable puis la met à la place de l'ancienne d'un
     seul coup (os.replace). L'AppImage en cours continue de tourner."""
     if not url or not url.startswith(PREFIXE_SETUP):
-        raise ValueError("AppImage introuvable dans la dernière version publiée.")
+        raise ValueError(_i18n("AppImage introuvable dans la dernière version publiée."))
     nouvelle = destination + ".new"
     try:
         _telecharger(url, nouvelle)
     except PermissionError:
-        raise ValueError(f"Le dossier de l'AppImage n'est pas modifiable ({os.path.dirname(destination)}) : "
-                         "téléchargez la nouvelle version depuis GitHub.") from None
+        raise ValueError(_i18n("Le dossier de l'AppImage n'est pas modifiable ({dossier}) : téléchargez la nouvelle version depuis GitHub.",
+                               dossier=os.path.dirname(destination))) from None
     except ValueError:
         if os.path.exists(nouvelle):
             os.remove(nouvelle)
         raise
     if not appimage_valide(nouvelle):
         os.remove(nouvelle)
-        raise ValueError("Le fichier téléchargé n'est pas une AppImage valide.")
+        raise ValueError(_i18n("Le fichier téléchargé n'est pas une AppImage valide."))
     os.chmod(nouvelle, 0o755)
     os.replace(nouvelle, destination)
     return destination
@@ -319,13 +355,13 @@ def installer_mise_a_jour(_d=None):
     à la fin ; Linux : la nouvelle AppImage, mise à la place de l'ancienne).
     Les réglages et les données ne sont pas touchés."""
     if not config.GELE:
-        raise ValueError("Installation automatique réservée au programme installé (Setup.exe)." if systeme.WINDOWS else
-                         "Installation automatique réservée au programme installé (AppImage).")
+        raise ValueError(_i18n("Installation automatique réservée au programme installé (Setup.exe)." if systeme.WINDOWS else
+                               "Installation automatique réservée au programme installé (AppImage)."))
     appimage = None
     if not systeme.WINDOWS:
         appimage = appimage_courante()
         if not appimage:
-            raise ValueError("Installation automatique réservée au programme installé (AppImage).")
+            raise ValueError(_i18n("Installation automatique réservée au programme installé (AppImage)."))
     info = derniere_version()
     if _version(info["version"]) <= _version(config.VERSION):
         return {"a_jour": True}

@@ -154,7 +154,7 @@
     "Elle n'est utilisée par aucune dépense.": "It is not used by any expense.",
     "Catégorie supprimée": "Category deleted", "Catégorie enregistrée": "Category saved", "Devise enregistrée": "Currency saved",
     "Justificatifs": "Receipts", "Rangés dans : {dossier}": "Stored in: {dossier}",
-    "Euro": "Euro", "Dollar américain": "US dollar", "Ariary": "Ariary",
+    "Euro": "Euro", "Dollar américain": "US dollar", "Peso colombien": "Colombian peso", "Ariary": "Ariary",
     "Rien à exporter.": "Nothing to export.", "Fichier enregistré : {nom}": "File saved: {nom}",
     // Messages du serveur
     "Date invalide.": "Invalid date.", "Mois invalide.": "Invalid month.", "Choisissez une catégorie.": "Choose a category.",
@@ -189,11 +189,202 @@
     "Client : 120 caractères maximum.": "Client: 120 characters max.",
   });
   I18N.motifs([
-    [/^(.+) : indiquez un montant valide\.$/, "$1: enter a valid amount."],
-    [/^(.+) : ce montant est trop élevé\.$/, "$1: this amount is too high."],
-    [/^(.+) : le montant doit être supérieur à 0\.$/, "$1: the amount must be greater than 0."],
-    [/^(.+) : (\d+) caractères maximum\.$/, "$1: $2 characters max."],
+    [/^(.+) : indiquez un montant valide\.$/, (match, champ) => I18N.langue === "es" ? `${I18N.t(champ)}: indica un monto válido.` : `${champ}: enter a valid amount.`],
+    [/^(.+) : ce montant est trop élevé\.$/, (match, champ) => I18N.langue === "es" ? `${I18N.t(champ)}: el monto es demasiado alto.` : `${champ}: this amount is too high.`],
+    [/^(.+) : le montant doit être supérieur à 0\.$/, (match, champ) => I18N.langue === "es" ? `${I18N.t(champ)}: el monto debe ser mayor que 0.` : `${champ}: the amount must be greater than 0.`],
+    [/^(.+) : (\d+) caractères maximum\.$/, (match, champ, n) => I18N.langue === "es" ? `${I18N.t(champ)}: máximo ${n} caracteres.` : `${champ}: ${n} characters max.`],
   ]);
+  I18N.ajouterEspanol({
+    "Dépenses": "Gastos",
+    "Dépenses et notes de frais": "Gastos y reportes de gastos",
+    "Budget du mois, charges fixes, épargne, statistiques et notes de frais avec justificatifs.":
+      "Presupuesto mensual, gastos fijos, ahorros, estadísticas y reportes de gastos con comprobantes.",
+    "Tableau de bord": "Panel", "Charges fixes": "Gastos fijos", "Budget": "Presupuesto", "Épargne": "Ahorros",
+    "Statistiques": "Estadísticas", "Notes de frais": "Reportes de gastos", "Réglages": "Configuración",
+    "Ajouter une dépense": "Añadir un gasto", "Nouvelle dépense": "Nuevo gasto", "Modifier la dépense": "Editar gasto",
+    "Nouvelle charge fixe": "Nuevo gasto fijo", "Modifier la charge fixe": "Editar gasto fijo",
+    "Alimentation": "Alimentación", "Transport": "Transporte", "Logement": "Vivienda", "Santé": "Salud", "Loisirs": "Ocio",
+    "Shopping": "Compras", "Abonnements": "Suscripciones", "Éducation": "Educación",
+    "Autres": "Otros", "Sans catégorie": "Sin categoría",
+    "Carte bancaire": "Tarjeta", "Espèces": "Efectivo", "Virement": "Transferencia", "PayPal": "PayPal",
+    "Mobile Money": "Mobile Money", "Autre": "Otro",
+    "À rembourser": "Por reembolsar", "Remboursée": "Reembolsada", "Refacturée": "Refacturada",
+    "Remboursées": "Reembolsadas", "Refacturées": "Refacturadas", "Toutes": "Todas",
+    "Sur la bonne voie": "Vas por buen camino", "À surveiller": "Presta atención", "Presque atteint": "Casi alcanzado",
+    "Budget dépassé": "Presupuesto excedido",
+    "Tout va bien, vos dépenses restent maîtrisées.": "Todo va bien, tus gastos están bajo control.",
+    "Vous avez utilisé une bonne partie du budget, gardez un œil dessus.": "Ya usaste buena parte del presupuesto; no lo pierdas de vista.",
+    "Le budget est presque atteint. Encore un petit effort jusqu'à la fin du mois.": "Casi alcanzas el presupuesto. Haz un pequeño esfuerzo hasta fin de mes.",
+    "Le budget est dépassé ce mois-ci. Ce n'est pas grave, il repart à zéro le mois prochain.": "Este mes superaste el presupuesto. No te preocupes, el próximo mes comienza de cero.",
+    "Dépensé ce mois-ci": "Gastado este mes", "Dépensé": "Gastado",
+    "sur {budget}": "de {budget}", "dont {montant} de charges fixes": "incluye {montant} de gastos fijos",
+    "{montant} couverts par l'épargne": "{montant} cubiertos con los ahorros",
+    "{pct} utilisé": "{pct} usado", "{montant} restants": "quedan {montant}", "{montant} au-delà": "{montant} por encima",
+    "Fixez-vous un objectif": "Establece una meta",
+    "Un budget mensuel vous aide à savoir où vous en êtes en un coup d'œil.": "Un presupuesto mensual te permite saber de un vistazo cómo vas.",
+    "Définir un budget": "Definir un presupuesto", "Budget mensuel": "Presupuesto mensual",
+    "Reconduit chaque mois tant qu'il n'est pas modifié. 0 : pas de budget.": "Se repite cada mes hasta que lo cambies. 0: sin presupuesto.",
+    "Budget enregistré": "Presupuesto guardado",
+    "Restant": "Restante", "Dépassement": "Excedente", "Par jour restant": "Por día restante",
+    "Projection fin de mois": "Proyección a fin de mes", "au rythme actuel": "al ritmo actual",
+    "{n} jours restants": "Quedan {n} días", "1 jour restant": "Queda 1 día",
+    "Historique": "Historial", "6 derniers mois": "Últimos 6 meses", "12 derniers mois": "Últimos 12 meses",
+    "Dépenses variables": "Gastos variables", "{n} par mois": "{n} al mes", "Aucune pour l'instant": "Todavía no hay",
+    "{n} ce mois-ci": "{n} este mes", "{montant} disponibles": "{montant} disponibles", "Créer mon épargne": "Crear mis ahorros",
+    "Mise de côté chaque mois, à n'utiliser qu'en cas d'imprévu": "Ahorra cada mes y usa el dinero solo si surge un imprevisto",
+    "{montant} épargnés ce mois-ci": "{montant} ahorrados este mes",
+    "{montant} épargnés ce mois-ci, {repris} repris": "{montant} ahorrados este mes, {repris} retirados",
+    "{montant} repris ce mois-ci, au-delà de l'épargne du mois": "{montant} retirados este mes, además de los ahorros del mes",
+    "Notes de frais à rembourser": "Reportes de gastos por reembolsar", "Rien à rembourser": "Nada por reembolsar",
+    "{n} notes de frais": "{n} reportes de gastos", "1 note de frais": "1 reporte de gastos",
+    "Dernières dépenses": "Últimos gastos", "Tout voir": "Ver todo", "Par catégorie": "Por categoría", "Ce mois-ci": "Este mes",
+    "Pas encore de dépenses.": "Todavía no hay gastos.",
+    "Pour commencer": "Para empezar",
+    "Ajoutez vos charges fixes (loyer, abonnements…) : elles reviendront toutes seules chaque mois.":
+      "Añade tus gastos fijos (arriendo, suscripciones…): se repetirán automáticamente cada mes.",
+    "Ajoutez une dépense du quotidien en quelques secondes.": "Añade un gasto cotidiano en unos segundos.",
+    "Fixez un budget mensuel pour savoir où vous en êtes.": "Define un presupuesto mensual para saber cómo vas.",
+    "Ajouter une charge fixe": "Añadir un gasto fijo",
+    "Aucune dépense ce mois-ci pour l'instant. Ajoutez-en une en quelques secondes.": "Todavía no hay gastos este mes. Añade uno en unos segundos.",
+    "Vous avez dépassé votre budget de {montant}. Pas de panique, le mois prochain repart à zéro.":
+      "Superaste tu presupuesto por {montant}. No te preocupes, el próximo mes comienza de cero.",
+    "Il vous reste {reste} pour le mois, soit environ {jour} par jour.": "Te quedan {reste} para el mes, aproximadamente {jour} por día.",
+    "Vous avez utilisé {pct} % de votre budget. Il vous reste {reste}.": "Usaste el {pct} % de tu presupuesto. Te quedan {reste}.",
+    "Vos dépenses variables sont {pct} % plus faibles que le mois dernier à la même date.":
+      "Tus gastos variables son un {pct} % menores que los del mes pasado en la misma fecha.",
+    "Vos dépenses variables sont {pct} % plus élevées que le mois dernier à la même date.":
+      "Tus gastos variables son un {pct} % mayores que los del mes pasado en la misma fecha.",
+    "Vos dépenses variables sont stables par rapport au mois dernier.": "Tus gastos variables se mantienen estables respecto al mes pasado.",
+    "Votre principale catégorie de dépenses est « {cat} ».": "Tu principal categoría de gastos es «{cat}».",
+    "Rechercher dans tous les mois…": "Buscar en todos los meses…", "Toutes les catégories": "Todas las categorías",
+    "Plus récent": "Más reciente", "Plus ancien": "Más antiguo", "Montant décroissant": "Monto: de mayor a menor", "Montant croissant": "Monto: de menor a mayor",
+    "Pro seulement": "Solo profesionales", "Export CSV": "Exportar CSV",
+    "Pour Excel (séparateur « ; »)": "Para Excel (separador «;»)",
+    "{n} dépenses": "{n} gastos", "1 dépense": "1 gasto", "Résultats dans tous les mois": "Resultados de todos los meses",
+    "Aucune dépense ce mois-ci.": "No hay gastos este mes.", "Aucun résultat.": "No hay resultados.",
+    "Mois précédent": "Mes anterior", "Mois suivant": "Mes siguiente",
+    "Charge fixe": "Gasto fijo", "Pro": "Profesional", "Justificatif": "Comprobante",
+    "{montant} pris sur l'épargne": "{montant} tomado de los ahorros",
+    "Ouvrir le justificatif": "Abrir el comprobante", "Montant": "Monto", "Catégorie": "Categoría",
+    "Description (facultatif)": "Descripción (opcional)", "Nom de la charge": "Nombre del gasto",
+    "ex. Courses de la semaine": "p. ej., Mercado de la semana", "Loyer, Internet, Assurance…": "Arriendo, Internet, seguro…",
+    "Date": "Fecha", "Jour du mois": "Día del mes", "Le {n}": "El día {n}", "Paiement": "Pago",
+    "Note (facultatif)": "Nota (opcional)", "Un détail à retenir…": "Un detalle para recordar…",
+    "Ajoutée automatiquement chaque mois": "Se añade automáticamente cada mes",
+    "Loyer, abonnement… revient chaque mois": "Arriendo, suscripción… se repite cada mes",
+    "Versée sur votre épargne. Retrouvez-la dans « Épargne ».": "Se añadirá a tus ahorros. La encontrarás en «Ahorros».",
+    "Mise de côté chaque mois sur votre épargne. En cas d'imprévu, vous pourrez y puiser.":
+      "Se ahorra cada mes. Si surge un imprevisto, podrás usar este dinero.",
+    "Ajoutée automatiquement par une charge fixe. La modifier ici ne change que ce mois-ci.":
+      "Se añadió automáticamente como gasto fijo. Si lo modificas aquí, el cambio solo se aplicará a este mes.",
+    "Dépense professionnelle": "Gasto profesional", "Note de frais : à rembourser ou à refacturer à un client":
+      "Reporte de gastos: por reembolsar o facturar a un cliente",
+    "Client refacturable (facultatif)": "Cliente al que se facturará (opcional)", "Nom du client": "Nombre del cliente",
+    "Statut": "Estado", "Joindre un justificatif": "Adjuntar un comprobante", "Changer": "Cambiar",
+    "Photo ou PDF, copié dans les données de Mes outils.": "Foto o PDF; se copiará a los datos de Mes outils.",
+    "Choisir un justificatif": "Elegir un comprobante", "Retirer": "Quitar", "Ouvrir": "Abrir",
+    "Ajouter": "Añadir", "Enregistrer": "Guardar", "Annuler": "Cancelar", "Modifier": "Editar", "Supprimer": "Eliminar",
+    "Dépense ajoutée": "Gasto añadido", "Dépense modifiée": "Gasto actualizado", "Dépense supprimée": "Gasto eliminado",
+    "Dépense ajoutée, {montant} pris sur l'épargne": "Gasto añadido; se tomaron {montant} de los ahorros",
+    "Charge fixe ajoutée, elle reviendra chaque mois": "Gasto fijo añadido; se repetirá cada mes",
+    "Charge fixe modifiée": "Gasto fijo actualizado", "Charge fixe arrêtée": "Gasto fijo detenido",
+    "Cette dépense dépasse votre budget du mois de {montant}. Vous allez devoir toucher à votre épargne ({dispo} disponibles).":
+      "Este gasto supera tu presupuesto mensual por {montant}. Tendrás que usar tus ahorros ({dispo} disponibles).",
+    "Montant pris sur l'épargne": "Monto tomado de los ahorros", "Entre 0 et {max}": "Entre 0 y {max}",
+    "Confirmer": "Confirmar", "Ajouter sans toucher à l'épargne": "Añadir sin usar los ahorros",
+    "Supprimer cette dépense ?": "¿Eliminar este gasto?",
+    "Elle disparaît des totaux. Ce qui a été pris sur l'épargne pour elle y revient.":
+      "Se quitará de los totales. El dinero que se tomó de los ahorros para cubrirlo se devolverá.",
+    "Arrêter cette charge fixe ?": "¿Detener este gasto fijo?",
+    "Elle ne sera plus ajoutée les mois suivants. Les dépenses déjà enregistrées sont conservées.":
+      "No se añadirá en los próximos meses. Se conservarán los gastos ya registrados.",
+    "Arrêter": "Detener", "Arrêter la charge fixe": "Detener el gasto fijo",
+    "Total par mois": "Total mensual", "Reste pour le variable": "Restante para gastos variables",
+    "Ajoutées automatiquement à vos dépenses au début de chaque mois.": "Se añaden automáticamente a tus gastos al comienzo de cada mes.",
+    "Aucune charge fixe pour l'instant": "Todavía no hay gastos fijos",
+    "Ajoutez une fois pour toutes ce que vous payez chaque mois : loyer, électricité, internet, téléphone, assurance, abonnements… Elles s'ajouteront toutes seules à vos dépenses.":
+      "Añade los pagos que haces cada mes: arriendo, electricidad, Internet, teléfono, seguro, suscripciones… Se incluirán automáticamente en tus gastos.",
+    "Le {n} de chaque mois": "El día {n} de cada mes", "Suivi de mon épargne": "Seguimiento de mis ahorros",
+    "Mettre de côté chaque mois : choisissez la catégorie Épargne": "Ahorra cada mes: elige la categoría Ahorros",
+    "Épargne disponible": "Ahorros disponibles", "{montant} mis de côté depuis le début": "{montant} ahorrados desde el inicio",
+    "{montant} repris": "{montant} retirados",
+    "{nom} : {montant} mis de côté le {jour} de chaque mois": "{nom}: {montant} ahorrados el día {jour} de cada mes",
+    "Prévu ce mois-ci": "Previsto este mes", "Repris ce mois-ci": "Retirado este mes", "Épargné ce mois-ci": "Ahorrado este mes",
+    "pour couvrir un dépassement": "para cubrir un excedente", "rien n'a été touché": "no se usaron los ahorros",
+    "pris sur l'épargne des mois passés": "tomado de los ahorros de meses anteriores",
+    "Reprises sur l'épargne": "Retiros de los ahorros", "Chaque fois que l'épargne a couvert un dépassement": "Cada vez que los ahorros cubrieron un excedente",
+    "Vous n'avez jamais eu à toucher à votre épargne. Bravo !": "Nunca has tenido que usar tus ahorros. ¡Muy bien!",
+    "Annuler cette reprise": "Cancelar este retiro", "Annuler cette reprise ?": "¿Cancelar este retiro?",
+    "{montant} reviendront dans l'épargne. La dépense est conservée : le dépassement du budget qu'elle couvrait réapparaîtra.":
+      "{montant} volverán a tus ahorros. El gasto se conservará y volverá a aparecer el excedente del presupuesto que cubría.",
+    "Annuler la reprise": "Cancelar el retiro", "{montant} remis dans l'épargne": "{montant} devueltos a los ahorros",
+    "Dépense de {montant}": "Gasto de {montant}",
+    "Aucune épargne pour l'instant": "Todavía no hay ahorros",
+    "Ajoutez une charge fixe dans la catégorie « Épargne » : elle sera mise de côté chaque mois, dans votre budget. En cas d'imprévu, vous pourrez y puiser, et tout sera suivi ici.":
+      "Añade un gasto fijo en la categoría «Ahorros»: se apartará cada mes dentro de tu presupuesto. Si surge un imprevisto, podrás usarlo y aquí verás todos los movimientos.",
+    "Prévu": "Previsto", "Repris": "Retirado", "Épargné": "Ahorrado",
+    "Ce mois": "Este mes", "Mois dernier": "Mes pasado", "3 mois": "3 meses", "12 mois": "12 meses",
+    "Comparaison avec le mois précédent": "Comparación con el mes anterior", "Évolution": "Evolución", "à date égale": "en la misma fecha",
+    "Au {date}, vous aviez dépensé {montant}.": "El {date}, habías gastado {montant}.",
+    "Bonne nouvelle : vous dépensez moins que le mois dernier à la même période.": "Buenas noticias: gastas menos que el mes pasado en el mismo periodo.",
+    "Vous dépensez un peu plus que le mois dernier à la même période.": "Gastas un poco más que el mes pasado en el mismo periodo.",
+    "Vos dépenses sont identiques au mois dernier à la même période.": "Tus gastos son iguales a los del mes pasado en el mismo periodo.",
+    "Moyenne quotidienne": "Promedio diario", "{montant} / jour": "{montant} / día", "Plus grosse dépense": "Gasto más alto",
+    "Aucune dépense": "Sin gastos", "Dépenses par catégorie": "Gastos por categoría", "Top catégories": "Categorías principales",
+    "Total : {montant}": "Total: {montant}", "Aucune dépense sur cette période.": "No hay gastos en este periodo.",
+    "Évolution des dépenses": "Evolución de los gastos", "Par jour": "Por día", "Par semaine": "Por semana", "Par mois": "Por mes",
+    "Dépenses mensuelles": "Gastos mensuales", "en cours": "en curso",
+    "Pas encore de statistiques": "Todavía no hay estadísticas",
+    "Ajoutez quelques dépenses : vos graphiques apparaîtront ici automatiquement.":
+      "Añade algunos gastos y tus gráficos aparecerán aquí automáticamente.",
+    "Semaine du {date}": "Semana del {date}",
+    "Toutes les notes": "Todos los reportes", "Exporter pour la comptabilité": "Exportar para contabilidad",
+    "Aucune note de frais.": "No hay reportes de gastos.",
+    "Cochez « Dépense professionnelle » dans une dépense pour la suivre ici.": "Marca «Gasto profesional» en un gasto para verlo aquí.",
+    "{n} sans justificatif": "{n} sin comprobante", "Sans justificatif": "Sin comprobante",
+    "Statut modifié": "Estado actualizado", "Justificatif joint": "Comprobante adjuntado", "Justificatif retiré": "Comprobante quitado",
+    "Devise": "Moneda", "Changer la devise ne convertit pas les montants : seul l'affichage change.": "Cambiar la moneda no convierte los montos; solo cambia la forma de mostrarlos.",
+    "Catégories": "Categorías", "Nouvelle catégorie": "Nueva categoría", "Modifier la catégorie": "Editar categoría",
+    "Nom de la catégorie": "Nombre de la categoría", "Icône": "Ícono", "Couleur": "Color",
+    "Pas supprimable": "No se puede eliminar", "{n} utilisations": "{n} usos", "1 utilisation": "1 uso", "Inutilisée": "Sin usar",
+    "Supprimer la catégorie « {nom} » ?": "¿Eliminar la categoría «{nom}»?",
+    "Ses dépenses et charges fixes passent dans :": "Sus gastos y gastos fijos se moverán a:",
+    "Elle n'est utilisée par aucune dépense.": "No se usa en ningún gasto.",
+    "Catégorie supprimée": "Categoría eliminada", "Catégorie enregistrée": "Categoría guardada", "Devise enregistrée": "Moneda guardada",
+    "Justificatifs": "Comprobantes", "Rangés dans : {dossier}": "Guardados en: {dossier}",
+    "Euro": "Euro", "Dollar américain": "Dólar estadounidense", "Peso colombien": "Peso colombiano", "Ariary": "Ariary",
+    "Rien à exporter.": "No hay nada que exportar.", "Fichier enregistré : {nom}": "Archivo guardado: {nom}",
+    "Date invalide.": "La fecha no es válida.", "Mois invalide.": "El mes no es válido.", "Choisissez une catégorie.": "Elige una categoría.",
+    "Moyen de paiement invalide.": "El método de pago no es válido.", "Statut invalide.": "El estado no es válido.",
+    "Donnez un nom à cette charge (ex. Loyer).": "Escribe un nombre para este gasto (p. ej., Arriendo).", "Jour invalide.": "El día no es válido.",
+    "Charge fixe introuvable.": "No se encontró el gasto fijo.", "Catégorie introuvable.": "No se encontró la categoría.",
+    "Dépense introuvable.": "No se encontró el gasto.", "Reprise introuvable.": "No se encontró el retiro.",
+    "Donnez un nom à la catégorie.": "Escribe un nombre para la categoría.", "Une catégorie porte déjà ce nom.": "Ya existe una categoría con ese nombre.",
+    "Icône invalide.": "El ícono no es válido.", "Couleur invalide.": "El color no es válido.",
+    "La catégorie Épargne ne peut pas être supprimée.": "No se puede eliminar la categoría Ahorros.",
+    "Gardez au moins une catégorie.": "Debe quedar al menos una categoría.",
+    "Choisissez une catégorie de remplacement.": "Elige una categoría de reemplazo.",
+    "Le montant pris sur l'épargne est invalide.": "El monto tomado de los ahorros no es válido.",
+    "Votre épargne ne suffit pas pour ce montant.": "Tus ahorros no son suficientes para este monto.",
+    "Le montant ne peut pas être inférieur à ce qui a été pris sur l'épargne. Annulez d'abord la reprise.":
+      "El monto no puede ser menor que el valor tomado de los ahorros. Primero cancela el retiro.",
+    "Ce n'est pas une dépense professionnelle.": "No es un gasto profesional.",
+    "Justificatif introuvable.": "No se encontró el comprobante.", "Fichier introuvable.": "No se encontró el archivo.",
+    "Justificatif : une photo ou un PDF seulement.": "Comprobante: solo se permite una foto o un PDF.",
+    "Justificatif trop lourd (25 Mo au plus).": "El comprobante es demasiado grande (máximo 25 MB).",
+    "Devise non prise en charge.": "La moneda no es compatible.",
+    "Montant : indiquez un montant valide.": "Monto: indica un monto válido.",
+    "Montant : ce montant est trop élevé.": "Monto: el monto es demasiado alto.",
+    "Montant : le montant doit être supérieur à 0.": "Monto: el monto debe ser mayor que 0.",
+    "Montant pris sur l'épargne : indiquez un montant valide.": "Monto tomado de los ahorros: indica un monto válido.",
+    "Montant pris sur l'épargne : ce montant est trop élevé.": "Monto tomado de los ahorros: el monto es demasiado alto.",
+    "Montant pris sur l'épargne : le montant doit être supérieur à 0.": "Monto tomado de los ahorros: el monto debe ser mayor que 0.",
+    "Nom : 120 caractères maximum.": "Nombre: máximo 120 caracteres.",
+    "Nom : 40 caractères maximum.": "Nombre: máximo 40 caracteres.",
+    "Description : 120 caractères maximum.": "Descripción: máximo 120 caracteres.",
+    "Client : 64 caractères maximum.": "Cliente: máximo 64 caracteres.",
+    "Client : 120 caractères maximum.": "Cliente: máximo 120 caracteres.",
+  });
 
   const PAIEMENTS = { carte: "Carte bancaire", especes: "Espèces", virement: "Virement", paypal: "PayPal",
     mobile_money: "Mobile Money", autre: "Autre" };
@@ -210,7 +401,7 @@
     menthe: "var(--menthe)", rouge: "var(--rouge)", gris: "var(--gris)" };
   const ONGLETS = [["accueil", "Tableau de bord"], ["depenses", "Dépenses"], ["charges", "Charges fixes"], ["budget", "Budget"],
     ["epargne", "Épargne"], ["statistiques", "Statistiques"], ["notes", "Notes de frais"], ["reglages", "Réglages"]];
-  const DEVISES = { EUR: "Euro", USD: "Dollar américain", MGA: "Ariary" };
+  const DEVISES = { EUR: "Euro", USD: "Dollar américain", COP: "Peso colombien", MGA: "Ariary" };
 
   const D = { onglet: "accueil", ctx: { devise: "EUR", categories: [], mois: null, aujourdhui: null },
     mois: null, filtres: { q: "", categorie: "", tri: "date_desc", pro: false },
@@ -349,18 +540,20 @@
   const racine = () => $("#vue-depenses");
   const tx = s => document.createTextNode(s ?? "");
   const nb = s => Number.parseFloat(s || "0");        // affichage seulement (largeurs, formats)
-  const DECIMALES = { EUR: 2, USD: 2, MGA: 0 };
+  const DECIMALES = { EUR: 2, USD: 2, COP: 2, MGA: 0 };
   function fmt(montant, devise = D.ctx.devise) {
     const chiffres = DECIMALES[devise] ?? 2;
     const v = nb(montant);
     const entier = Math.abs(v - Math.round(v)) < 0.005;
     try {
-      return new Intl.NumberFormat(I18N.locale(), { style: "currency", currency: devise, currencyDisplay: "narrowSymbol",
+      return new Intl.NumberFormat(I18N.locale(), { style: "currency", currency: devise,
+        currencyDisplay: devise === "COP" ? "code" : "narrowSymbol",
         minimumFractionDigits: entier ? 0 : chiffres, maximumFractionDigits: entier ? 0 : chiffres }).format(v).replace(/ /g, " ");
     } catch { return `${v} ${devise}`; }
   }
   function symbole() {
-    try { return new Intl.NumberFormat(I18N.locale(), { style: "currency", currency: D.ctx.devise, currencyDisplay: "narrowSymbol" })
+    try { return new Intl.NumberFormat(I18N.locale(), { style: "currency", currency: D.ctx.devise,
+      currencyDisplay: D.ctx.devise === "COP" ? "code" : "narrowSymbol" })
       .formatToParts(0).find(p => p.type === "currency")?.value || D.ctx.devise; } catch { return D.ctx.devise; }
   }
   /** « 12,50 » → 1250 (centimes entiers), NaN si invalide : comparaisons sans float. */

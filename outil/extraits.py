@@ -26,6 +26,19 @@ TRIS = ("usage", "titre", "recent")
 
 _verrou = threading.RLock()
 
+_ESPAGNOL = {
+    "Extrait invalide.": "El fragmento no es válido.",
+    "Donnez un titre à l'extrait.": "Asigna un título al fragmento.",
+    "L'extrait est vide.": "El fragmento está vacío.",
+    "Titre trop long (120 caractères au plus).": "El título es demasiado largo (máximo 120 caracteres).",
+    "Extrait trop long (100 000 caractères au plus).": "El fragmento es demasiado largo (máximo 100 000 caracteres).",
+    "Extrait introuvable.": "No se encontró el fragmento.",
+}
+
+
+def _i18n(texte):
+    return _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+
 
 def _maintenant():
     return time.strftime("%Y-%m-%dT%H:%M")
@@ -100,17 +113,17 @@ def lister(recherche="", langage="", etiquette="", tri="usage"):
 def enregistrer(extrait):
     """Créer (sans id) ou modifier (avec id) un extrait. Renvoie l'extrait."""
     if not isinstance(extrait, dict):
-        raise ValueError("Extrait invalide.")
+        raise ValueError(_i18n("Extrait invalide."))
     titre = str(extrait.get("titre") or "").strip()
     contenu = str(extrait.get("contenu") or "")
     if not titre:
-        raise ValueError("Donnez un titre à l'extrait.")
+        raise ValueError(_i18n("Donnez un titre à l'extrait."))
     if not contenu.strip():
-        raise ValueError("L'extrait est vide.")
+        raise ValueError(_i18n("L'extrait est vide."))
     if len(titre) > MAX_TITRE:
-        raise ValueError("Titre trop long (120 caractères au plus).")
+        raise ValueError(_i18n("Titre trop long (120 caractères au plus)."))
     if len(contenu) > MAX_CONTENU:
-        raise ValueError("Extrait trop long (100 000 caractères au plus).")
+        raise ValueError(_i18n("Extrait trop long (100 000 caractères au plus)."))
     propre = {
         "titre": titre,
         "langage": str(extrait.get("langage") or "").strip()[:MAX_LANGAGE],
@@ -125,7 +138,7 @@ def enregistrer(extrait):
         if identifiant:
             existant = next((e for e in elements if e.get("id") == identifiant), None)
             if existant is None:
-                raise ValueError("Extrait introuvable.")
+                raise ValueError(_i18n("Extrait introuvable."))
             existant.update(propre)
             resultat = existant
         else:
@@ -151,7 +164,7 @@ def epingler(identifiant, valeur=True):
         elements = _tous()
         e = next((x for x in elements if x.get("id") == identifiant), None)
         if e is None:
-            raise ValueError("Extrait introuvable.")
+            raise ValueError(_i18n("Extrait introuvable."))
         e["epingle"] = bool(valeur)
         config.ecrire_donnees(NOM, elements)
         return dict(e)
@@ -163,7 +176,7 @@ def utiliser(identifiant):
         elements = _tous()
         e = next((x for x in elements if x.get("id") == identifiant), None)
         if e is None:
-            raise ValueError("Extrait introuvable.")
+            raise ValueError(_i18n("Extrait introuvable."))
         e["utilisations"] = int(e.get("utilisations") or 0) + 1
         e["dernier_usage"] = _maintenant()
         config.ecrire_donnees(NOM, elements)
@@ -176,7 +189,7 @@ def copier(identifiant):
     with _verrou:
         e = next((x for x in _tous() if x.get("id") == identifiant), None)
     if e is None:
-        raise ValueError("Extrait introuvable.")
+        raise ValueError(_i18n("Extrait introuvable."))
     import presse_papiers  # ici : ce module touche à user32
     presse_papiers.ecrire_texte(e["contenu"])
     return utiliser(identifiant)

@@ -50,6 +50,55 @@ FETCH_PARALLELE = 4
 DELAI_FETCH = 60
 DELAI_STATUS = 15
 
+_ESPAGNOL = {
+    "Projet inconnu.": "Proyecto desconocido.",
+    "Projet introuvable : le dossier a peut-être été déplacé.": "No se encontró el proyecto: es posible que se haya movido la carpeta.",
+    "Dossier introuvable.": "No se encontró la carpeta.",
+    "Adresse invalide : elle doit commencer par http:// ou https://.": "La dirección no es válida: debe comenzar por http:// o https://.",
+    "Aucune adresse pour cette commande.": "No hay una dirección para este comando.",
+    "Commande invalide.": "El comando no es válido.",
+    "Donnez un nom à chaque commande.": "Asigna un nombre a cada comando.",
+    "Commande invalide : {nom}": "El comando no es válido: {nom}",
+    "Liste de commandes invalide.": "La lista de comandos no es válida.",
+    "Commande inconnue.": "Comando desconocido.",
+    "Action inconnue.": "Acción desconocida.",
+    "Aucun terminal trouvé sur ce PC (par exemple : sudo apt install gnome-terminal).":
+        "No se encontró una terminal en este equipo (por ejemplo: sudo apt install gnome-terminal).",
+    "Port invalide : {port}": "El puerto no es válido: {port}",
+    "Le dossier du projet est introuvable.": "No se encontró la carpeta del proyecto.",
+    "Cette commande est déjà en marche.": "Este comando ya está en ejecución.",
+    "Le port {port} est déjà utilisé par un autre programme.": "Otro programa ya está usando el puerto {port}.",
+    "Impossible de lancer la commande : {detail}": "No se pudo iniciar el comando: {detail}",
+    "Ce processus n'a pas été lancé par Mes outils : il n'est pas arrêté.":
+        "Mes outils no inició este proceso, por lo que no se detuvo.",
+    "Cette commande n'est pas en marche (ou n'a pas été lancée par Mes outils).":
+        "Este comando no está en ejecución (o Mes outils no lo inició).",
+    "Arrêtez d'abord une commande en marche avant de la supprimer.":
+        "Detén primero cualquier comando en ejecución antes de eliminarlo.",
+    "Ce projet n'est pas un dépôt Git.": "Este proyecto no es un repositorio de Git.",
+    "Ouvrez d'abord le coffre dans l'onglet Mots de passe.": "Primero abre la bóveda en la pestaña Contraseñas.",
+    "Fichier .env invalide.": "El archivo .env no es válido.",
+    "Aucun fichier .env dans ce projet.": "No hay ningún archivo .env en este proyecto.",
+    "Aucune sauvegarde de {nom} dans le coffre.": "No hay una copia de seguridad de {nom} en la bóveda.",
+    "Le dossier de ce fichier n'existe plus.": "La carpeta de este archivo ya no existe.",
+    "Fichier introuvable : {fichier}": "No se encontró el archivo: {fichier}",
+    "Fichier trop gros pour le coffre : {fichier}": "El archivo es demasiado grande para la bóveda: {fichier}",
+    "Fichier illisible (pas en UTF-8) : {fichier}": "No se puede leer el archivo (no está en UTF-8): {fichier}",
+    "Git n'est pas installé sur ce PC.": "Git no está instalado en este equipo.",
+    "Git met trop de temps à répondre.": "Git tarda demasiado en responder.",
+    "Le serveur Git ne répond pas (délai dépassé).": "El servidor de Git no responde (se agotó el tiempo de espera).",
+    "Serveur Git injoignable ou accès refusé.": "No se puede acceder al servidor de Git o se rechazó el acceso.",
+    "Accès refusé : connectez-vous une fois avec git dans un terminal.":
+        "Acceso denegado: inicia sesión una vez con Git desde una terminal.",
+    "git a échoué.": "Git falló.",
+    "git fetch a échoué.": "Falló git fetch.",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
+
 ID_PROJET = re.compile(r"^[0-9a-f]{10}$")
 ID_COMMANDE = re.compile(r"^[a-z0-9-]{1,40}$")
 NOM_SCRIPT = re.compile(r"^[A-Za-z0-9:_.@/-]{1,60}$")
@@ -405,7 +454,7 @@ def lister(_d=None):
 def _projet(pid):
     """Le chemin d'un projet connu (jamais un chemin quelconque venu de la page)."""
     if not ID_PROJET.match(str(pid or "")):
-        raise ErreurProjets("Projet inconnu.")
+        raise ErreurProjets(_i18n("Projet inconnu."))
     d = _donnees()
     bloc = d["commandes"].get(pid)
     if isinstance(bloc, dict) and isinstance(bloc.get("chemin"), str) and identifiant(bloc["chemin"]) == pid \
@@ -414,13 +463,13 @@ def _projet(pid):
     for chemin, _ in _candidats():
         if identifiant(chemin) == pid:
             return chemin
-    raise ErreurProjets("Projet introuvable : le dossier a peut-être été déplacé.")
+    raise ErreurProjets(_i18n("Projet introuvable : le dossier a peut-être été déplacé."))
 
 
 def ajouter(d):
     chemin = _norm(d.get("chemin"))
     if not d.get("chemin") or not os.path.isdir(chemin):
-        raise ErreurProjets("Dossier introuvable.")
+        raise ErreurProjets(_i18n("Dossier introuvable."))
     with _verrou:
         donnees = _donnees()
         if not any(_meme_chemin(chemin, a) for a in donnees["ajoutes"]):
@@ -480,7 +529,7 @@ def ouvrir_terminal(d):
     chemin = _projet(d.get("projet"))
     if not systeme.WINDOWS:
         if not systeme.ouvrir_terminal(dossier=chemin):
-            raise ErreurProjets("Aucun terminal trouvé sur ce PC (par exemple : sudo apt install gnome-terminal).")
+            raise ErreurProjets(_i18n("Aucun terminal trouvé sur ce PC (par exemple : sudo apt install gnome-terminal)."))
         return {"ok": True}
     wt = shutil.which("wt")
     if wt and ";" not in chemin:  # « ; » sépare les commandes de wt
@@ -495,7 +544,7 @@ def ouvrir_terminal(d):
 def _verifier_url(url):
     url = str(url or "").strip()
     if not re.match(r"^https?://[^\s\"'<>]+$", url, re.I):
-        raise ErreurProjets("Adresse invalide : elle doit commencer par http:// ou https://.")
+        raise ErreurProjets(_i18n("Adresse invalide : elle doit commencer par http:// ou https://."))
     return url
 
 
@@ -503,7 +552,7 @@ def ouvrir_site(d):
     pid, cid = d.get("projet"), d.get("commande")
     _, c = _commande(pid, cid)
     if not c.get("url"):
-        raise ErreurProjets("Aucune adresse pour cette commande.")
+        raise ErreurProjets(_i18n("Aucune adresse pour cette commande."))
     webbrowser.open(_verifier_url(c["url"]))
     return {"ok": True}
 
@@ -513,13 +562,13 @@ def ouvrir_site(d):
 # ---------------------------------------------------------------------------
 def _nettoyer_commande(c):
     if not isinstance(c, dict):
-        raise ErreurProjets("Commande invalide.")
+        raise ErreurProjets(_i18n("Commande invalide."))
     nom = str(c.get("nom") or "").strip()[:60]
     commande = str(c.get("commande") or "").strip()
     if not nom:
-        raise ErreurProjets("Donnez un nom à chaque commande.")
+        raise ErreurProjets(_i18n("Donnez un nom à chaque commande."))
     if not commande or len(commande) > 500 or "\n" in commande or "\r" in commande:
-        raise ErreurProjets(f"Commande invalide : {nom}")
+        raise ErreurProjets(_i18n("Commande invalide : {nom}", nom=nom))
     port = c.get("port")
     if port in ("", None):
         port = None
@@ -529,7 +578,7 @@ def _nettoyer_commande(c):
         except (TypeError, ValueError):
             port = 0
         if not 1 <= port <= 65535:
-            raise ErreurProjets(f"Port invalide : {c.get('port')}")
+            raise ErreurProjets(_i18n("Port invalide : {port}", port=c.get("port")))
     url = str(c.get("url") or "").strip()
     if url:
         url = _verifier_url(url)
@@ -547,7 +596,7 @@ def enregistrer_commandes(d):
     chemin = _projet(pid)
     liste = d.get("commandes")
     if not isinstance(liste, list) or len(liste) > MAX_COMMANDES:
-        raise ErreurProjets("Liste de commandes invalide.")
+        raise ErreurProjets(_i18n("Liste de commandes invalide."))
     propres, vus = [], set()
     for c in liste:
         c = _nettoyer_commande(c)
@@ -559,7 +608,7 @@ def enregistrer_commandes(d):
         donnees = _donnees()
         for cid in _commandes_lancees(donnees, pid):
             if cid not in vus:
-                raise ErreurProjets("Arrêtez d'abord une commande en marche avant de la supprimer.")
+                raise ErreurProjets(_i18n("Arrêtez d'abord une commande en marche avant de la supprimer."))
         if propres:
             donnees["commandes"][pid] = {"chemin": chemin, "commandes": propres}
         else:
@@ -570,14 +619,14 @@ def enregistrer_commandes(d):
 
 def _commande(pid, cid):
     if not ID_PROJET.match(str(pid or "")) or not ID_COMMANDE.match(str(cid or "")):
-        raise ErreurProjets("Commande inconnue.")
+        raise ErreurProjets(_i18n("Commande inconnue."))
     d = _donnees()
     bloc = d["commandes"].get(pid)
     if not isinstance(bloc, dict):
-        raise ErreurProjets("Commande inconnue.")
+        raise ErreurProjets(_i18n("Commande inconnue."))
     c = next((x for x in bloc.get("commandes", []) if x.get("id") == cid), None)
     if not c:
-        raise ErreurProjets("Commande inconnue.")
+        raise ErreurProjets(_i18n("Commande inconnue."))
     return bloc.get("chemin"), c
 
 
@@ -759,11 +808,11 @@ def demarrer(pid, cid):
         d = _oublier_morts()
         chemin, c = _commande(pid, cid)
         if not chemin or not os.path.isdir(chemin):
-            raise ErreurProjets("Le dossier du projet est introuvable.")
+            raise ErreurProjets(_i18n("Le dossier du projet est introuvable."))
         if _lance_vivant(d, pid, cid):
-            raise ErreurProjets("Cette commande est déjà en marche.")
+            raise ErreurProjets(_i18n("Cette commande est déjà en marche."))
         if c.get("port") and port_repond(c["port"]):
-            raise ErreurProjets(f"Le port {c['port']} est déjà utilisé par un autre programme.")
+            raise ErreurProjets(_i18n("Le port {port} est déjà utilisé par un autre programme.", port=c["port"]))
         journal = chemin_journal(pid, cid, os.path.basename(chemin.rstrip("\\/")))
         os.makedirs(os.path.dirname(journal), exist_ok=True)
         # La commande a été saisie (ou acceptée) par l'utilisateur dans SA
@@ -776,7 +825,7 @@ def demarrer(pid, cid):
             try:
                 p = _lancer(c["commande"], chemin, sortie)
             except OSError as e:
-                raise ErreurProjets(f"Impossible de lancer la commande : {e}") from None
+                raise ErreurProjets(_i18n("Impossible de lancer la commande : {detail}", detail=e)) from None
         cree = heure_creation(p.pid)
         if cree is None:  # déjà terminé
             _fins[(pid, cid)] = p.wait()
@@ -820,7 +869,7 @@ def _tuer_arbre(pid_processus, cree=None):
         info = next((i for i in d["lances"].values() if isinstance(i, dict) and i.get("pid") == pid_processus), None)
         if not info or (cree is not None and info.get("cree") != cree) \
                 or heure_creation(pid_processus) != info.get("cree"):
-            raise ErreurProjets("Ce processus n'a pas été lancé par Mes outils : il n'est pas arrêté.")
+            raise ErreurProjets(_i18n("Ce processus n'a pas été lancé par Mes outils : il n'est pas arrêté."))
         if not systeme.WINDOWS:
             _tuer_arbre_linux(int(pid_processus))
             return
@@ -836,7 +885,7 @@ def arreter(pid, cid):
         if not info:
             d["lances"].pop(_cle(pid, cid), None)
             _ecrire(d)
-            raise ErreurProjets("Cette commande n'est pas en marche (ou n'a pas été lancée par Mes outils).")
+            raise ErreurProjets(_i18n("Cette commande n'est pas en marche (ou n'a pas été lancée par Mes outils)."))
         _tuer_arbre(info["pid"], info["cree"])
         p = _popens.pop((pid, cid), None)
         code = None
@@ -929,7 +978,7 @@ def action_commande(projet_id, commande_id, action):
         return demarrer(projet_id, commande_id)
     if action == "ouvrir":
         return ouvrir_site({"projet": projet_id, "commande": commande_id})
-    raise ErreurProjets("Action inconnue.")
+    raise ErreurProjets(_i18n("Action inconnue."))
 
 
 def _route_commande(d):
@@ -988,12 +1037,12 @@ def etat_git(chemin):
     try:
         p = _git(["--no-optional-locks", "status", "--porcelain=v2", "--branch"], chemin, DELAI_STATUS)
     except FileNotFoundError:
-        return {"erreur": "Git n'est pas installé sur ce PC."}
+        return {"erreur": _i18n("Git n'est pas installé sur ce PC.")}
     except subprocess.TimeoutExpired:
-        return {"erreur": "Git met trop de temps à répondre."}
+        return {"erreur": _i18n("Git met trop de temps à répondre.")}
     if p.returncode != 0:
         lignes = [x for x in (p.stderr or "").splitlines() if x.strip()]
-        return {"erreur": lignes[-1] if lignes else "git a échoué."}
+        return {"erreur": lignes[-1] if lignes else _i18n("git a échoué.")}
     return analyser_status(p.stdout)
 
 
@@ -1002,19 +1051,19 @@ def recuperer(chemin):
     try:
         p = _git(["fetch", "--prune", "--quiet"], chemin, DELAI_FETCH)
     except FileNotFoundError:
-        return {"erreur": "Git n'est pas installé sur ce PC."}
+        return {"erreur": _i18n("Git n'est pas installé sur ce PC.")}
     except subprocess.TimeoutExpired:
-        return {**etat_git(chemin), "erreur_fetch": "Le serveur Git ne répond pas (délai dépassé)."}
+        return {**etat_git(chemin), "erreur_fetch": _i18n("Le serveur Git ne répond pas (délai dépassé).")}
     etat = etat_git(chemin)
     if p.returncode != 0:
         bas = (p.stderr or "").lower()
         if "could not resolve host" in bas or "unable to access" in bas or "could not read from remote" in bas:
-            message = "Serveur Git injoignable ou accès refusé."
+            message = _i18n("Serveur Git injoignable ou accès refusé.")
         elif "authentication" in bas or "permission denied" in bas or "terminal prompts disabled" in bas:
-            message = "Accès refusé : connectez-vous une fois avec git dans un terminal."
+            message = _i18n("Accès refusé : connectez-vous une fois avec git dans un terminal.")
         else:
             lignes = [x for x in (p.stderr or "").splitlines() if x.strip()]
-            message = lignes[-1] if lignes else "git fetch a échoué."
+            message = lignes[-1] if lignes else _i18n("git fetch a échoué.")
         etat["erreur_fetch"] = message
     etat["verifie"] = time.strftime("%Y-%m-%dT%H:%M:%S")
     return etat
@@ -1035,7 +1084,7 @@ def etats_git(_d=None):
 def git_fetch(d):
     chemin = _projet(d.get("projet"))
     if not os.path.isdir(os.path.join(chemin, ".git")):
-        raise ErreurProjets("Ce projet n'est pas un dépôt Git.")
+        raise ErreurProjets(_i18n("Ce projet n'est pas un dépôt Git."))
     return {"git": recuperer(chemin)}
 
 
@@ -1063,7 +1112,7 @@ def _le_coffre():
 def _coffre_ouvert():
     c = _le_coffre()
     if not c.ouvert():
-        raise ErreurProjets("Ouvrez d'abord le coffre dans l'onglet Mots de passe.")
+        raise ErreurProjets(_i18n("Ouvrez d'abord le coffre dans l'onglet Mots de passe."))
     return c
 
 
@@ -1088,11 +1137,11 @@ def _chemin_env(projet, relatif):
     morceaux = relatif.split("/")
     if not 1 <= len(morceaux) <= 2 or not FICHIER_ENV.match(morceaux[-1]) \
             or any(m in ("", ".", "..") for m in morceaux) or ":" in relatif:
-        raise ErreurProjets("Fichier .env invalide.")
+        raise ErreurProjets(_i18n("Fichier .env invalide."))
     complet = os.path.normpath(os.path.join(projet, *morceaux))
     if os.path.normcase(os.path.dirname(complet)) not in (os.path.normcase(projet),
                                                           os.path.normcase(os.path.join(projet, morceaux[0]))):
-        raise ErreurProjets("Fichier .env invalide.")
+        raise ErreurProjets(_i18n("Fichier .env invalide."))
     return complet, "/".join(morceaux)
 
 
@@ -1120,21 +1169,21 @@ def env_sauvegarder(d):
     c = _coffre_ouvert()
     voulus = [d["fichier"]] if d.get("fichier") else fichiers_env(projet)
     if not voulus:
-        raise ErreurProjets("Aucun fichier .env dans ce projet.")
+        raise ErreurProjets(_i18n("Aucun fichier .env dans ce projet."))
     existantes = {e.get("identifiant"): e for e in _entrees_env(c, projet)}
     nom = os.path.basename(projet.rstrip("\\/"))
     faits = []
     for rel in voulus:
         complet, rel = _chemin_env(projet, rel)
         if not os.path.isfile(complet):
-            raise ErreurProjets(f"Fichier introuvable : {rel}")
+            raise ErreurProjets(_i18n("Fichier introuvable : {fichier}", fichier=rel))
         if os.path.getsize(complet) > TAILLE_ENV_MAX:
-            raise ErreurProjets(f"Fichier trop gros pour le coffre : {rel}")
+            raise ErreurProjets(_i18n("Fichier trop gros pour le coffre : {fichier}", fichier=rel))
         with open(complet, "rb") as f:
             try:
                 contenu = f.read().decode("utf-8")
             except UnicodeDecodeError:
-                raise ErreurProjets(f"Fichier illisible (pas en UTF-8) : {rel}") from None
+                raise ErreurProjets(_i18n("Fichier illisible (pas en UTF-8) : {fichier}", fichier=rel)) from None
         entree = {"titre": f"{nom} · {rel}", "site": projet, "identifiant": rel, "categorie": "env",
                   "note": contenu, "mot_de_passe": ""}
         if rel in existantes:
@@ -1151,10 +1200,10 @@ def env_restaurer(d):
     complet, rel = _chemin_env(projet, d.get("fichier"))
     e = next((x for x in _entrees_env(c, projet) if x.get("identifiant") == rel), None)
     if not e:
-        raise ErreurProjets(f"Aucune sauvegarde de {rel} dans le coffre.")
+        raise ErreurProjets(_i18n("Aucune sauvegarde de {nom} dans le coffre.", nom=rel))
     contenu = c.reveler(e["id"], "note")
     if not os.path.isdir(os.path.dirname(complet)):
-        raise ErreurProjets("Le dossier de ce fichier n'existe plus.")
+        raise ErreurProjets(_i18n("Le dossier de ce fichier n'existe plus."))
     if os.path.exists(complet):
         shutil.copyfile(complet, complet + ".bak")
     tmp = complet + ".tmp"

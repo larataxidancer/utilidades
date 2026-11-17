@@ -15,6 +15,7 @@
     "🌗 Automatique": "🌗 Automatic",
     "☀️ Clair": "☀️ Light",
     "🌙 Sombre": "🌙 Dark",
+    "🌷 Rosa": "🌷 Pink",
     "Onglets affichés": "Visible tabs",
     "Choisissez les applications du menu, comme dans un ERP : les autres disparaissent, leurs données restent.":
       "Choose the apps in the menu, like in an ERP: the others leave, their data stays.",
@@ -94,6 +95,7 @@
     "🌗 Automatique": "🌗 Automático",
     "☀️ Clair": "☀️ Claro",
     "🌙 Sombre": "🌙 Oscuro",
+    "🌷 Rosa": "🌷 Rosa",
     "Onglets affichés": "Pestañas visibles",
     "Choisissez les applications du menu, comme dans un ERP : les autres disparaissent, leurs données restent.":
       "Elige las aplicaciones del menú, como en un ERP: las demás se ocultan, pero sus datos se conservan.",
@@ -148,6 +150,21 @@
       "El icono aparece en la parte superior derecha de la pantalla; su menú es igual al de la burbuja.",
     "L'icône n'est pas disponible sur ce bureau : la bulle reste affichée.":
       "El icono no está disponible en este escritorio: la burbuja seguirá visible.",
+    "Télécharger le nouvel installateur ? Fermez la bulle (clic droit › Quitter), puis lancez-le : vos réglages et vos données sont gardés.":
+      "¿Descargar el nuevo instalador? Cierra la burbuja (clic derecho › Salir) y ejecútalo: se conservarán tus ajustes y datos.",
+    "Relancez la bulle (clic droit › Quitter, puis le raccourci) pour finir la mise à jour.":
+      "Reinicia la burbuja (clic derecho › Salir y luego usa el acceso directo) para completar la actualización.",
+    "Télécharger la nouvelle AppImage ? Quittez la bulle (clic droit › Quitter la bulle), rendez le fichier exécutable (Propriétés › Exécutable comme un programme), puis lancez-le : vos réglages et vos données sont gardés.":
+      "¿Descargar la nueva AppImage? Cierra la burbuja (clic derecho › Salir de la burbuja), marca el archivo como ejecutable (Propiedades › Ejecutable como programa) y ábrelo: se conservarán tus ajustes y datos.",
+    "La mise à jour prend du temps : relancez Mes outils depuis le menu des applications.":
+      "La actualización está tardando: vuelve a iniciar Mes outils desde el menú de aplicaciones.",
+    "AppImage introuvable dans la dernière version publiée.": "No se encontró la AppImage en la última versión publicada.",
+    "Le fichier téléchargé n'est pas une AppImage valide.": "El archivo descargado no es una AppImage válida.",
+    "Installation automatique réservée au programme installé (AppImage).":
+      "La instalación automática solo está disponible para la versión instalada (AppImage).",
+    "Installation automatique réservée au programme installé (Setup.exe).":
+      "La instalación automática solo está disponible para el programa instalado (Setup.exe).",
+    "Windows": "Windows",
     "Affichage inconnu.": "Modo de visualización desconocido.",
   });
 
@@ -199,8 +216,8 @@
     const langues = el("div", { class: "langues-reg" }, [["fr", "Français"], ["en", "English"], ["es", "Español"]].map(([code, nom]) =>
       el("button", { class: "btn" + (i.langue === code ? " actif" : ""), onclick: () => { if (code !== i.langue) enregistrer({ langue: code }, true); } }, nom)));
 
-    const themes = el("div", { class: "langues-reg" }, [["auto", "🌗 Automatique"], ["clair", "☀️ Clair"], ["sombre", "🌙 Sombre"]].map(([code, nom]) =>
-      el("button", { class: "btn" + (S.theme === code ? " actif" : ""), onclick: async () => { await changerTheme(code); dessiner(); } }, nom)));
+    const themes = el("div", { class: "langues-reg" }, [["auto", "🌗 Automatique"], ["clair", "☀️ Clair"], ["sombre", "🌙 Sombre"], ["rosa", "🌷 Rosa"]].map(([code, nom]) =>
+      el("button", { class: "btn" + (S.theme === code ? " actif" : ""), onclick: async () => { await changerTheme(code); dessiner(); } }, t(nom))));
 
     const masques = new Set(i.onglets_masques);
     const onglets = listeOnglets().filter(o => o.nom !== "accueil" && o.nom !== "reglages")

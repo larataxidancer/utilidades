@@ -17,6 +17,18 @@ import config  # noqa: E402
 DOSSIER = config.DONNEES
 _verrou = threading.RLock()
 
+_ESPAGNOL = {
+    "Note": "Nota",
+    "Rendez-vous": "Cita",
+    "toute la journée": "todo el día",
+    "Aujourd'hui {quand}{lieu}": "Hoy {quand}{lieu}",
+}
+
+
+def _i18n(texte, **valeurs):
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
+
 
 def _chemin(nom):
     return os.path.join(DOSSIER, nom + ".json")
@@ -142,7 +154,7 @@ def rappels_dus():
                 dus.append({
                     "genre": nom,
                     "id": e["id"],
-                    "titre": e.get("titre") or ("Note" if nom == "notes" else "Rendez-vous"),
+                    "titre": e.get("titre") or _i18n("Note" if nom == "notes" else "Rendez-vous"),
                     "detail": _detail_rappel(nom, e),
                 })
             if change:
@@ -158,10 +170,13 @@ def _detail_rappel(nom, e):
             texte = " · ".join(restants[:3])
         return texte[:140]
     debut = _date(e.get("debut"))
-    quand = "toute la journée" if e.get("journee") else (debut.strftime("à %H:%M") if debut else "")
+    quand = _i18n("toute la journée") if e.get("journee") else (
+        debut.strftime("a las %H:%M" if config.langue() == "es" else "à %H:%M") if debut else "")
     lieu = f" · {e['lieu']}" if e.get("lieu") else ""
-    return f"Aujourd'hui {quand}{lieu}" if debut and debut.date() == a_jour() else (
-        (debut.strftime("Le %d/%m %H:%M") if debut else "") + lieu)
+    if debut and debut.date() == a_jour():
+        return _i18n("Aujourd'hui {quand}{lieu}", quand=quand, lieu=lieu)
+    return ((debut.strftime("%d/%m %H:%M" if config.langue() == "es" else "Le %d/%m %H:%M") if debut else "")
+            + lieu)
 
 
 def a_jour():

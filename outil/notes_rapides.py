@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Notes rapides et extraits personnels, conservés dans donnees/notes_rapides.json."""
+"""Notas rápidas y extractos personales, guardados en donnees/notes_rapides.json."""
 import datetime
 import threading
 import uuid
@@ -15,20 +15,20 @@ _verrou = threading.RLock()
 
 
 def _maintenant():
-    """Renvoie la date locale au format ISO 8601."""
+    """Devuelve la fecha local en formato ISO 8601."""
     return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
 
 
 def _toutes():
-    """Lit les notes et vérifie la structure du fichier."""
+    """Lee las notas y verifica la estructura del archivo."""
     notes = config.lire_donnees(NOM, [])
     if not isinstance(notes, list) or not all(isinstance(note, dict) for note in notes):
-        raise ValueError("Les données des notes rapides sont invalides.")
+        raise ValueError("Los datos de las notas rápidas no son válidos.")
     return notes
 
 
 def lister(_d=None):
-    """Renvoie les notes épinglées en premier, puis les plus récentes."""
+    """Devuelve las notas fijadas primero y luego las más recientes."""
     with _verrou:
         notes = [dict(note) for note in _toutes()]
     notes.sort(key=lambda note: note.get("modifie_le", ""), reverse=True)
@@ -37,25 +37,25 @@ def lister(_d=None):
 
 
 def enregistrer(d):
-    """Crée ou modifie une note rapide."""
+    """Crea o modifica una nota rápida."""
     if not isinstance(d, dict):
-        raise ValueError("La note rapide est invalide.")
+        raise ValueError("La nota rápida no es válida.")
     titre = str(d.get("titre") or "").strip()
     contenu = str(d.get("contenu") or "")
     categorie = d.get("categorie")
     epingle = d.get("epingle", False)
     if not titre:
-        raise ValueError("Donnez un titre à la note rapide.")
+        raise ValueError("Debes indicar un título para la nota rápida.")
     if len(titre) > MAX_TITRE:
-        raise ValueError("Le titre ne peut pas dépasser 160 caractères.")
+        raise ValueError("El título no puede superar 160 caracteres.")
     if not contenu.strip():
-        raise ValueError("Le contenu ne peut pas être vide.")
+        raise ValueError("El contenido no puede estar vacío.")
     if len(contenu) > MAX_CONTENU:
-        raise ValueError("Le contenu ne peut pas dépasser 100 000 caractères.")
+        raise ValueError("El contenido no puede superar 100 000 caracteres.")
     if categorie not in CATEGORIES:
-        raise ValueError("La catégorie de la note rapide est invalide.")
+        raise ValueError("La categoría de la nota rápida no es válida.")
     if not isinstance(epingle, bool):
-        raise ValueError("L'état de l'épingle est invalide.")
+        raise ValueError("El estado del marcador no es válido.")
 
     avec = {
         "titre": titre,
@@ -69,10 +69,10 @@ def enregistrer(d):
         identifiant = d.get("id")
         if identifiant:
             if not isinstance(identifiant, str):
-                raise ValueError("L'identifiant de la note rapide est invalide.")
+                raise ValueError("El identificador de la nota rápida no es válido.")
             existante = next((note for note in notes if note.get("id") == identifiant), None)
             if existante is None:
-                raise ValueError("Note rapide introuvable.")
+                raise ValueError("Nota rápida no encontrada.")
             existante.update(avec)
             resultat = existante
         else:
@@ -83,32 +83,32 @@ def enregistrer(d):
 
 
 def supprimer(d):
-    """Supprime une note rapide existante."""
+    """Elimina una nota rápida existente."""
     identifiant = d.get("id") if isinstance(d, dict) else None
     if not isinstance(identifiant, str) or not identifiant:
-        raise ValueError("L'identifiant de la note rapide est invalide.")
+        raise ValueError("El identificador de la nota rápida no es válido.")
     with _verrou:
         notes = _toutes()
         restantes = [note for note in notes if note.get("id") != identifiant]
         if len(restantes) == len(notes):
-            raise ValueError("Note rapide introuvable.")
+            raise ValueError("Nota rápida no encontrada.")
         config.ecrire_donnees(NOM, restantes)
     return {"supprime": True}
 
 
 def epingler(d):
-    """Épingle ou désépingle une note rapide."""
+    """Fija o desactiva una nota rápida."""
     identifiant = d.get("id") if isinstance(d, dict) else None
     valeur = d.get("epingle") if isinstance(d, dict) else None
     if not isinstance(identifiant, str) or not identifiant:
-        raise ValueError("L'identifiant de la note rapide est invalide.")
+        raise ValueError("El identificador de la nota rápida no es válido.")
     if not isinstance(valeur, bool):
-        raise ValueError("L'état de l'épingle est invalide.")
+        raise ValueError("El estado del marcador no es válido.")
     with _verrou:
         notes = _toutes()
         note = next((element for element in notes if element.get("id") == identifiant), None)
         if note is None:
-            raise ValueError("Note rapide introuvable.")
+            raise ValueError("Nota rápida no encontrada.")
         note["epingle"] = valeur
         note["modifie_le"] = _maintenant()
         config.ecrire_donnees(NOM, notes)

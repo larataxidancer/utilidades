@@ -87,7 +87,96 @@
     "Fichier trop gros (5 Mo au plus).": "File too large (5 MB maximum).",
     "Colonnes introuvables : il faut au moins « Nom » ou « Entreprise ».": "Columns not found: at least “Name” or “Company” is needed.",
   });
-  I18N.motifs([[/^Ligne (\d+)$/, "Line $1"]]);
+  I18N.ajouterEspanol({
+    "Contacts": "Contactos",
+    "Contacts et clients : fiches, historique des échanges, relances, import et export CSV.":
+      "Contactos y clientes: fichas, historial de interacciones, seguimientos e importación y exportación de CSV.",
+    "Rechercher un contact": "Buscar un contacto",
+    "Nouveau contact": "Nuevo contacto",
+    "Importer": "Importar", "Exporter": "Exportar",
+    "Exporter en CSV (Excel, séparateur « ; »)": "Exportar como CSV (Excel, separador «;»)",
+    "Importer un fichier CSV": "Importar un archivo CSV",
+    "Tous": "Todos",
+    "À relancer": "Pendientes de seguimiento",
+    "Toutes les étiquettes": "Todas las etiquetas",
+    "Personne": "Persona", "Entreprise": "Empresa",
+    "Aucun contact pour l'instant.": "Todavía no hay contactos.",
+    "Ajoutez vos clients et prospects, ou importez un fichier CSV.": "Agrega tus clientes y prospectos, o importa un archivo CSV.",
+    "Aucun contact ne correspond.": "No hay contactos que coincidan.",
+    "Effacer les filtres": "Borrar filtros",
+    "Écrire": "Escribir", "Appeler": "Llamar", "Copier les coordonnées": "Copiar datos de contacto",
+    "Modifier": "Editar", "Supprimer": "Eliminar", "Annuler": "Cancelar", "Enregistrer": "Guardar", "Ajouter": "Añadir",
+    "Pas d'adresse e-mail": "Sin correo electrónico", "Pas de numéro": "Sin número de teléfono",
+    "Coordonnées copiées": "Datos de contacto copiados",
+    "Copier": "Copiar", "Copié": "Copiado",
+    "E-mail": "Correo electrónico", "Téléphone": "Teléfono", "Adresse": "Dirección", "Site web": "Sitio web", "Poste": "Cargo",
+    "Prénom": "Nombre", "Nom": "Apellido", "Nom de l'entreprise": "Nombre de la empresa",
+    "Statut": "Estado", "Étiquettes": "Etiquetas", "Relancer le": "Hacer seguimiento el", "Motif de la relance": "Motivo del seguimiento",
+    "séparées par des virgules": "separadas por comas",
+    "ex. envoyer le devis": "p. ej., enviar la cotización",
+    "ex. Gérante": "p. ej., gerente", "ex. Société Exemple": "p. ej., Empresa Ejemplo",
+    "Aucune coordonnée": "No hay datos de contacto",
+    "{n} personne": "{n} persona", "{n} personnes": "{n} personas",
+    "Personnes": "Personas",
+    "Relance": "Seguimiento",
+    "Relancer aujourd'hui": "Hacer seguimiento hoy", "Relancer demain": "Hacer seguimiento mañana",
+    "Relancer le {date}": "Hacer seguimiento el {date}", "En retard · {date}": "Atrasado · {date}",
+    "Fait": "Hecho", "Relance faite": "Seguimiento realizado",
+    "Dans 3 jours": "En 3 días", "Dans 1 semaine": "En 1 semana", "Dans 1 mois": "En 1 mes",
+    "Relance enregistrée": "Seguimiento guardado",
+    "Historique des échanges": "Historial de interacciones",
+    "Appel": "Llamada", "Mail": "Correo", "Rendez-vous": "Cita", "Note": "Nota",
+    "Compte rendu de l'appel, du mail, du rendez-vous…": "Resumen de la llamada, el correo o la cita…",
+    "Aucun échange noté pour l'instant.": "Todavía no hay interacciones registradas.",
+    "Supprimer cette note ?": "¿Eliminar esta nota?",
+    "Elle disparaît de l'historique.": "Desaparecerá del historial.",
+    "Note ajoutée": "Nota agregada", "Note supprimée": "Nota eliminada",
+    "Contact enregistré": "Contacto guardado", "Contact ajouté": "Contacto agregado", "Contact supprimé": "Contacto eliminado",
+    "Modifier le contact": "Editar contacto",
+    "Supprimer « {nom} » ?": "¿Eliminar «{nom}»?",
+    "La fiche et son historique sont effacés.": "La ficha y su historial se eliminarán.",
+    "La fiche et son historique sont effacés. Les personnes de cette entreprise restent, sans entreprise.":
+      "La ficha y su historial se eliminarán. Las personas de esta empresa se conservarán sin una empresa asociada.",
+    "Fiche créée le {date}": "Ficha creada el {date}",
+    "Ouvrir la fiche": "Abrir ficha",
+    "Importer des contacts": "Importar contactos",
+    "Fichier CSV (Excel, Google Contacts, Outlook…). Colonnes reconnues : Nom, Prénom, Entreprise, Poste, E-mail, Téléphone, Adresse, Site web, Statut, Étiquettes, Notes.":
+      "Archivo CSV (Excel, Google Contacts, Outlook…). Columnas reconocidas: Apellido, Nombre, Empresa, Cargo, Correo electrónico, Teléfono, Dirección, Sitio web, Estado, Etiquetas, Notas.",
+    "Une fiche déjà présente (même e-mail, sinon même nom) est complétée : rien n'est effacé.":
+      "Si la ficha ya existe (mismo correo electrónico o, en su defecto, mismo nombre), se completará sin eliminar datos.",
+    "Choisir un fichier": "Elegir un archivo",
+    "Import terminé": "Importación finalizada",
+    "Ajoutés : {n}": "Agregados: {n}", "Complétés : {n}": "Completados: {n}", "Ignorés : {n}": "Omitidos: {n}",
+    "Fichier illisible": "No se pudo leer el archivo",
+    "Contacts à relancer": "Contactos pendientes de seguimiento",
+    "Auj.": "Hoy",
+    "Ctrl + Entrée": "Ctrl + Enter",
+    "Adresse e-mail invalide.": "La dirección de correo electrónico no es válida.",
+    "Numéro de téléphone invalide.": "El número de teléfono no es válido.",
+    "Adresse du site invalide.": "La dirección del sitio web no es válida.",
+    "Date de relance invalide.": "La fecha de seguimiento no es válida.",
+    "Statut inconnu.": "El estado es desconocido.",
+    "Type de contact inconnu.": "El tipo de contacto es desconocido.",
+    "Indiquez un nom.": "Ingresa un nombre.",
+    "Entreprise introuvable.": "No se encontró la empresa.",
+    "Contact introuvable.": "No se encontró el contacto.",
+    "Fiche invalide.": "La ficha no es válida.",
+    "Une fiche ne peut pas appartenir à elle-même.": "Una ficha no puede estar asociada consigo misma.",
+    "Type d'échange inconnu.": "El tipo de interacción es desconocido.",
+    "Écrivez le contenu de la note.": "Escribe el contenido de la nota.",
+    "Date de la note invalide.": "La fecha de la nota no es válida.",
+    "Note introuvable.": "No se encontró la nota.",
+    "Le fichier est vide.": "El archivo está vacío.",
+    "Fichier trop gros (5 Mo au plus).": "El archivo es demasiado grande (máximo 5 MB).",
+    "Colonnes introuvables : il faut au moins « Nom » ou « Entreprise ».": "No se encontraron las columnas necesarias: debe haber al menos «Apellido» o «Empresa».",
+    "Français": "Francés",
+    "Prospect": "Prospecto", "Prospects": "Prospectos",
+    "Client": "Cliente", "Clients": "Clientes",
+    "Ancien client": "Cliente anterior", "Anciens clients": "Clientes anteriores",
+    "Fournisseur": "Proveedor", "Fournisseurs": "Proveedores",
+    "Autre": "Otro", "Autres": "Otros",
+  });
+  I18N.motifs([[/^Ligne (\d+)$/, m => I18N.langue === "es" ? `Línea ${m[1]}` : `Line ${m[1]}`]]);
 
   const C = { r: null, recherche: "", statut: "tous", etiquette: "", relancer: false, ouvert: null, pret: null, typeNote: "note" };
   const STATUTS = [
@@ -98,9 +187,12 @@
   // ailleurs dans le dictionnaire commun de la page).
   const STATUTS_EN = { prospect: ["Prospect", "Prospects"], client: ["Client", "Clients"], ancien: ["Former client", "Former clients"],
     fournisseur: ["Supplier", "Suppliers"], autre: ["Other", "Others"] };
+  const STATUTS_ES = { prospect: ["Prospecto", "Prospectos"], client: ["Cliente", "Clientes"], ancien: ["Cliente anterior", "Clientes anteriores"],
+    fournisseur: ["Proveedor", "Proveedores"], autre: ["Otro", "Otros"] };
   const libStatut = (cle, pluriel = false) => {
     const s = STATUTS.find(x => x[0] === cle) || STATUTS[4];
-    return txt(I18N.langue === "en" ? STATUTS_EN[s[0]][pluriel ? 1 : 0] : s[pluriel ? 2 : 1]);
+    return txt(I18N.langue === "en" ? STATUTS_EN[s[0]][pluriel ? 1 : 0]
+      : I18N.langue === "es" ? STATUTS_ES[s[0]][pluriel ? 1 : 0] : s[pluriel ? 2 : 1]);
   };
   const INFOS_STATUT = Object.fromEntries(STATUTS.map(s => [s[0], { classe: s[3] }]));
   const TYPES_NOTES = { appel: ["phone", "Appel"], mail: ["mail", "Mail"], rdv: ["calendar-days", "Rendez-vous"], note: ["sticky-note", "Note"] };

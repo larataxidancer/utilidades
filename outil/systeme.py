@@ -41,6 +41,29 @@ DETACHE = (0x00000008 | 0x00000200) if WINDOWS else 0  # DETACHED_PROCESS | CREA
 NOM_APPLI = "Mes outils"
 ID_APPLI = "mes-outils"
 
+_ESPAGNOL = {
+    "Impossible d'ouvrir : la commande xdg-open est absente.":
+        "No se pudo abrir: falta el comando xdg-open.",
+    "Microsoft Edge est introuvable : impossible de créer le PDF.":
+        "No se encontró Microsoft Edge: no se pudo crear el PDF.",
+    "Google Chrome ou Chromium est introuvable : impossible de créer le PDF.":
+        "No se encontró Google Chrome o Chromium: no se pudo crear el PDF.",
+    "{navigateur} n'a pas pu créer le PDF.": "{navigateur} no pudo crear el PDF.",
+    "Aucune fenêtre de choix de fichiers : installez zenity (sudo apt install zenity).":
+        "No hay una ventana para elegir archivos: instala zenity (sudo apt install zenity).",
+    "Aucune fenêtre de choix de dossier : installez zenity (sudo apt install zenity).":
+        "No hay una ventana para elegir una carpeta: instala zenity (sudo apt install zenity).",
+    "Le trousseau du bureau est verrouillé.": "El llavero del escritorio está bloqueado.",
+    "Trousseau du bureau inaccessible ({detail}).": "No se puede acceder al llavero del escritorio ({detail}).",
+}
+
+
+def _i18n(texte, **valeurs):
+    import config  # noqa: PLC0415
+
+    resultat = _ESPAGNOL.get(texte, texte) if config.langue() == "es" else texte
+    return resultat.format(**valeurs) if valeurs else resultat
+
 
 # ---------------------------------------------------------------------------
 # Processus
@@ -175,7 +198,7 @@ def ouvrir(cible):
         if "://" in cible or cible.startswith("mailto:"):
             webbrowser.open(cible)
             return
-        raise RuntimeError("Impossible d'ouvrir : la commande xdg-open est absente.")
+        raise RuntimeError(_i18n("Impossible d'ouvrir : la commande xdg-open est absente."))
     lancer_detache([commande, cible])
 
 
@@ -270,8 +293,8 @@ def html_vers_pdf(source_html, sortie_pdf, profil, delai=90):
     Lève ValueError si aucun navigateur ne convient ou si le PDF est vide."""
     navigateur = navigateur_chromium()
     if not navigateur:
-        raise ValueError("Microsoft Edge est introuvable : impossible de créer le PDF." if WINDOWS else
-                         "Google Chrome ou Chromium est introuvable : impossible de créer le PDF.")
+        raise ValueError(_i18n("Microsoft Edge est introuvable : impossible de créer le PDF." if WINDOWS else
+                               "Google Chrome ou Chromium est introuvable : impossible de créer le PDF."))
     bac = dossier_snap(navigateur)
     if bac:
         # Navigateur en snap (Chromium d'Ubuntu) : il ne voit ni /tmp ni les
@@ -289,7 +312,7 @@ def html_vers_pdf(source_html, sortie_pdf, profil, delai=90):
     else:
         _imprimer(navigateur, source_html, sortie_pdf, profil, delai)
     if not os.path.isfile(sortie_pdf) or os.path.getsize(sortie_pdf) == 0:
-        raise ValueError(f"{nom_navigateur()} n'a pas pu créer le PDF.")
+        raise ValueError(_i18n("{navigateur} n'a pas pu créer le PDF.", navigateur=nom_navigateur()))
 
 
 def _imprimer(navigateur, source_html, sortie_pdf, profil, delai):
@@ -423,8 +446,8 @@ def choisir_fichiers(titre="Choisir des fichiers", depart="", multi=True, filtre
     else:
         outil = outil_de_fenetres()
         if not outil:
-            raise RuntimeError("Aucune fenêtre de choix de fichiers : installez zenity "
-                               "(sudo apt install zenity).")
+            raise RuntimeError(_i18n("Aucune fenêtre de choix de fichiers : installez zenity "
+                                     "(sudo apt install zenity)."))
         args = (_zenity_fichiers if outil == "zenity" else _kdialog_fichiers)(titre, depart, multi, filtre)
         sortie = _executer_fenetre(args)
     return [x for x in _lignes(sortie) if os.path.isfile(x)]
@@ -441,8 +464,8 @@ def choisir_dossier(titre="Choisir un dossier", depart=""):
     else:
         outil = outil_de_fenetres()
         if not outil:
-            raise RuntimeError("Aucune fenêtre de choix de dossier : installez zenity "
-                               "(sudo apt install zenity).")
+            raise RuntimeError(_i18n("Aucune fenêtre de choix de dossier : installez zenity "
+                                     "(sudo apt install zenity)."))
         if outil == "zenity":
             args = ["zenity", "--file-selection", "--directory", f"--title={titre}"]
             if depart:
@@ -502,12 +525,12 @@ def _secretstorage():
         if collection.is_locked():
             collection.unlock()  # le trousseau demande son mot de passe s'il le faut
         if collection.is_locked():
-            raise ErreurSecret("Le trousseau du bureau est verrouillé.")
+            raise ErreurSecret(_i18n("Le trousseau du bureau est verrouillé."))
         return secretstorage, collection
     except ErreurSecret:
         raise
     except Exception as erreur:  # noqa: BLE001
-        raise ErreurSecret(f"Trousseau du bureau inaccessible ({erreur}).") from erreur
+        raise ErreurSecret(_i18n("Trousseau du bureau inaccessible ({detail}).", detail=erreur)) from erreur
 
 
 def _attributs(cible):

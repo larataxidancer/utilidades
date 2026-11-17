@@ -84,6 +84,14 @@ class TestReglages(BaseFactures):
         r = self.configurer(devise="MGA")
         self.assertEqual(r["devise"]["decimales"], 0)
 
+    def test_devise_cop(self):
+        devise = self.configurer(devise="COP")["devise"]
+        self.assertEqual(devise, {"code": "COP", "symbole": "COP", "decimales": 2})
+        self.assertEqual(factures.formater_montant(Decimal("1234.5"), devise, "es"), "1.234,50\u00a0COP")
+        self.assertEqual(factures.formater_montant(Decimal("1234.5"), devise, "en"), "1,234.50 COP")
+        with mock.patch.object(factures.config, "langue", return_value="es"):
+            self.assertEqual(factures._texte("Bonjour,"), "Hola,")
+
     def test_logo(self):
         self.configurer()
         r = factures.enregistrer_logo("logo.png", PNG)

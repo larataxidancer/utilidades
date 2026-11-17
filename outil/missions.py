@@ -129,10 +129,47 @@ _ANGLAIS = {
     "{titre} chez {entreprise} ({score} points)": "{titre} at {entreprise} ({score} points)",
     "Mon profil": "My profile",
 }
+_ESPANOL = {
+    "{n} nouvelles offres : {nom}": "{n} nuevas ofertas: {nom}",
+    "Nouvelle offre : {nom}": "Nueva oferta: {nom}",
+    "{titre} ({score} points)": "{titre} ({score} puntos)",
+    "{titre} chez {entreprise} ({score} points)": "{titre} en {entreprise} ({score} puntos)",
+    "Mon profil": "Mi perfil",
+    "{nom} invalide.": "{nom} no es válido.",
+    "{nom} : de {mini} à {maxi}.": "{nom}: de {mini} a {maxi}.",
+    "Recherche invalide.": "La búsqueda no es válida.",
+    "Indiquez un nom pour la recherche.": "Escribe un nombre para la búsqueda.",
+    "Devise invalide (code à trois lettres, ex. EUR).": "La moneda no es válida (código de tres letras, p. ej., EUR).",
+    "Niveau inconnu.": "Nivel desconocido.",
+    "Période inconnue.": "Período desconocido.",
+    "Choisissez au moins un domaine ou un mot-clé important.": "Selecciona al menos un área o una palabra clave importante.",
+    "Choisissez au moins un type de contrat.": "Selecciona al menos un tipo de contrato.",
+    "Choisissez au moins une zone.": "Selecciona al menos una zona.",
+    "Recherche introuvable.": "No se encontró la búsqueda.",
+    "{maximum} recherches au plus.": "Se permiten como máximo {maximum} búsquedas.",
+    "Ce fichier n'est pas un profil de recherche.": "Este archivo no es un perfil de búsqueda.",
+    "Fichier introuvable.": "No se encontró el archivo.",
+    "Fichier trop gros pour un profil.": "El archivo es demasiado grande para un perfil.",
+    "Ce fichier n'est pas un profil JSON valide.": "Este archivo no es un perfil JSON válido.",
+    "Ce profil n'a aucun mot-clé important (poids 4 ou plus).": "Este perfil no contiene palabras clave importantes (peso 4 o superior).",
+    "Offre introuvable.": "No se encontró la oferta.",
+    "Source inconnue.": "Fuente desconocida.",
+    "Gardez au moins une source active.": "Mantén al menos una fuente activa.",
+    "Site inconnu.": "Sitio desconocido.",
+    "Candidature invalide.": "La candidatura no es válida.",
+    "Statut inconnu.": "Estado desconocido.",
+    "Indiquez le poste.": "Indica el puesto.",
+    "Lien invalide : il doit commencer par https://": "El enlace no es válido: debe comenzar por https://",
+    "{maximum} candidatures au plus.": "Se permiten como máximo {maximum} candidaturas.",
+    "Candidature introuvable.": "No se encontró la candidatura.",
+    "Salaire minimum": "Salario mínimo", "Score minimum": "Puntuación mínima",
+    "Date": "Fecha", "Date de relance": "Fecha de seguimiento",
+}
 
 
 def _texte(fr, **valeurs):
-    texte = _ANGLAIS.get(fr, fr) if config.langue() == "en" else fr
+    langue = config.langue()
+    texte = _ANGLAIS.get(fr, fr) if langue == "en" else _ESPANOL.get(fr, fr) if langue == "es" else fr
     return texte.format(**valeurs) if valeurs else texte
 
 
@@ -749,28 +786,28 @@ def _entier(valeur, nom, mini, maxi, defaut):
     try:
         n = int(float(str(valeur).replace(",", ".").replace(" ", "")))
     except (TypeError, ValueError):
-        raise ValueError(f"{nom} invalide.") from None
+        raise ValueError(_texte("{nom} invalide.", nom=_texte(nom))) from None
     if not mini <= n <= maxi:
-        raise ValueError(f"{nom} : de {mini} à {maxi}.")
+        raise ValueError(_texte("{nom} : de {mini} à {maxi}.", nom=_texte(nom), mini=mini, maxi=maxi))
     return n
 
 
 def valider_recherche(b):
     """Une recherche propre à partir de ce qu'envoie la page. ValueError sinon."""
     if not isinstance(b, dict):
-        raise ValueError("Recherche invalide.")
+        raise ValueError(_texte("Recherche invalide."))
     nom = " ".join(str(b.get("nom") or "").split())[:MAX_NOM]
     if not nom:
-        raise ValueError("Indiquez un nom pour la recherche.")
+        raise ValueError(_texte("Indiquez un nom pour la recherche."))
     devise = str(b.get("devise") or "USD").strip().upper()
     if not re.fullmatch(r"[A-Z]{3}", devise):
-        raise ValueError("Devise invalide (code à trois lettres, ex. EUR).")
+        raise ValueError(_texte("Devise invalide (code à trois lettres, ex. EUR)."))
     niveau = b.get("niveau") or "senior"
     if niveau not in NIVEAUX:
-        raise ValueError("Niveau inconnu.")
+        raise ValueError(_texte("Niveau inconnu."))
     periode = b.get("periode") or "an"
     if periode not in PERIODES:
-        raise ValueError("Période inconnue.")
+        raise ValueError(_texte("Période inconnue."))
     r = {
         "nom": nom,
         "domaines": _sous_liste(b.get("domaines"), DOMAINES),
@@ -786,18 +823,18 @@ def valider_recherche(b):
         "score_min": _entier(b.get("score_min"), "Score minimum", -20, 100, SCORE_DEFAUT),
     }
     if not r["domaines"] and not r["importants"]:
-        raise ValueError("Choisissez au moins un domaine ou un mot-clé important.")
+        raise ValueError(_texte("Choisissez au moins un domaine ou un mot-clé important."))
     if not r["types"]:
-        raise ValueError("Choisissez au moins un type de contrat.")
+        raise ValueError(_texte("Choisissez au moins un type de contrat."))
     if not r["zones"]:
-        raise ValueError("Choisissez au moins une zone.")
+        raise ValueError(_texte("Choisissez au moins une zone."))
     return r
 
 
 def _trouver_recherche(d, ident):
     r = next((x for x in d["recherches"] if x.get("id") == ident), None)
     if r is None:
-        raise ValueError("Recherche introuvable.")
+        raise ValueError(_texte("Recherche introuvable."))
     return r
 
 
@@ -811,7 +848,7 @@ def enregistrer_recherche(b):
             r.update(valider_recherche(b))
         else:
             if len(d["recherches"]) >= MAX_RECHERCHES:
-                raise ValueError(f"{MAX_RECHERCHES} recherches au plus.")
+                raise ValueError(_texte("{maximum} recherches au plus.", maximum=MAX_RECHERCHES))
             r = {"id": uuid.uuid4().hex[:10], **valider_recherche(b), "cree": maintenant().isoformat()}
             d["recherches"].append(r)
         _ecrire(d)
@@ -849,7 +886,7 @@ def recherche_depuis_profil(p):
     importants, sinon utiles), motsAEviter → à éviter, zones, bonusType > 0 →
     types, experienceMaxSouhaitee → niveau, scoreMinimum."""
     if not isinstance(p, dict):
-        raise ValueError("Ce fichier n'est pas un profil de recherche.")
+        raise ValueError(_texte("Ce fichier n'est pas un profil de recherche."))
     importants, utiles, eviter = [], [], []
     for cle in ("motsCles", "techs"):
         bloc = p.get(cle)
@@ -881,17 +918,17 @@ def importer_profil(chemin=None, profil=None):
     if profil is None:
         chemin = os.path.normpath(str(chemin or "").strip().strip('"'))
         if not chemin or chemin == "." or not os.path.isfile(chemin):
-            raise ValueError("Fichier introuvable.")
+            raise ValueError(_texte("Fichier introuvable."))
         if os.path.getsize(chemin) > MAX_PROFIL:
-            raise ValueError("Fichier trop gros pour un profil.")
+            raise ValueError(_texte("Fichier trop gros pour un profil."))
         try:
             with open(chemin, encoding="utf-8-sig") as f:
                 profil = json.load(f)
         except (ValueError, UnicodeDecodeError):
-            raise ValueError("Ce fichier n'est pas un profil JSON valide.") from None
+            raise ValueError(_texte("Ce fichier n'est pas un profil JSON valide.")) from None
     champs = recherche_depuis_profil(profil)
     if not champs["importants"]:
-        raise ValueError("Ce profil n'a aucun mot-clé important (poids 4 ou plus).")
+        raise ValueError(_texte("Ce profil n'a aucun mot-clé important (poids 4 ou plus)."))
     with _verrou:
         d = _lire()
         existante = next((r for r in d["recherches"] if r.get("nom") == champs["nom"]), None)
@@ -1085,7 +1122,7 @@ def masquer(ident):
     with _verrou:
         d = _lire()
         if not isinstance(ident, str) or not ident:
-            raise ValueError("Offre introuvable.")
+            raise ValueError(_texte("Offre introuvable."))
         d["masquees"][ident] = maintenant().date().isoformat()
         if len(d["masquees"]) > MAX_VUES:
             d["masquees"] = dict(sorted(d["masquees"].items(), key=lambda x: x[1])[-MAX_VUES:])
@@ -1108,14 +1145,14 @@ def demasquer(ident=None):
 
 def changer_source(ident, actif):
     if ident not in SOURCES:
-        raise ValueError("Source inconnue.")
+        raise ValueError(_texte("Source inconnue."))
     with _verrou:
         d = _lire()
         off = [s for s in d["sources_off"] if s != ident]
         if not actif:
             off.append(ident)
         if len(off) == len(SOURCES):
-            raise ValueError("Gardez au moins une source active.")
+            raise ValueError(_texte("Gardez au moins une source active."))
         d["sources_off"] = off
         _ecrire(d)
         return True
@@ -1134,14 +1171,14 @@ def ouvrir(donnees):
     recherche) dans le navigateur. Jamais une adresse quelconque venue de la page."""
     if donnees.get("site"):
         if donnees["site"] not in SITES_MANUELS:
-            raise ValueError("Site inconnu.")
+            raise ValueError(_texte("Site inconnu."))
         with _verrou:
             r = _trouver_recherche(_lire(), donnees.get("recherche_id"))
         url = next(x["url"] for x in liens_manuels(r) if x["site"] == donnees["site"])
     else:
         o = _offre_par_id(donnees.get("id"))
         if not o or not re.match(r"^https?://\S+$", str(o.get("url") or "")):
-            raise ValueError("Offre introuvable.")
+            raise ValueError(_texte("Offre introuvable."))
         url = o["url"]
     systeme.ouvrir(url)
     return {"ok": True, "url": url}
@@ -1157,7 +1194,7 @@ def _jour(valeur, nom):
     try:
         return datetime.date.fromisoformat(valeur).isoformat()
     except ValueError:
-        raise ValueError(f"{nom} invalide.") from None
+        raise ValueError(_texte("{nom} invalide.", nom=_texte(nom))) from None
 
 
 def enregistrer_suivi(b):
@@ -1165,10 +1202,10 @@ def enregistrer_suivi(b):
     (titre, entreprise, lien, source) : le suivi reste après son expiration.
     Sans offre connue : candidature saisie à la main (titre obligatoire)."""
     if not isinstance(b, dict):
-        raise ValueError("Candidature invalide.")
+        raise ValueError(_texte("Candidature invalide."))
     statut = b.get("statut") or "a_voir"
     if statut not in STATUTS:
-        raise ValueError("Statut inconnu.")
+        raise ValueError(_texte("Statut inconnu."))
     with _verrou:
         d = _lire()
         cache = _lire_offres()
@@ -1182,15 +1219,15 @@ def enregistrer_suivi(b):
             else:
                 titre = " ".join(str(b.get("titre") or "").split())[:200]
                 if not titre:
-                    raise ValueError("Indiquez le poste.")
+                    raise ValueError(_texte("Indiquez le poste."))
                 url = str(b.get("url") or "").strip()[:500]
                 if url and not re.match(r"^https?://[^\s/]+", url, re.I):
-                    raise ValueError("Lien invalide : il doit commencer par https://")
+                    raise ValueError(_texte("Lien invalide : il doit commencer par https://"))
                 s = {"id": "manuel-" + uuid.uuid4().hex[:10], "titre": titre,
                      "entreprise": " ".join(str(b.get("entreprise") or "").split())[:120], "url": url,
                      "source": "manuel"}
             if len(d["suivi"]) >= MAX_SUIVI:
-                raise ValueError(f"{MAX_SUIVI} candidatures au plus.")
+                raise ValueError(_texte("{maximum} candidatures au plus.", maximum=MAX_SUIVI))
             s["recherche_id"] = str(b.get("recherche_id") or "")[:20]
             s["cree"] = maintenant().isoformat()
         elif s.get("source") == "manuel":
@@ -1221,7 +1258,7 @@ def supprimer_suivi(ident):
     with _verrou:
         d = _lire()
         if d["suivi"].pop(ident, None) is None:
-            raise ValueError("Candidature introuvable.")
+            raise ValueError(_texte("Candidature introuvable."))
         _ecrire(d)
         return True
 
