@@ -23,9 +23,9 @@ import shutil
 import sys
 import threading
 
-VERSION = "1.8.1"
-DEPOT = "https://github.com/rarianaAina/mes-outils"
-API_VERSIONS = "https://api.github.com/repos/rarianaAina/mes-outils/releases/latest"
+VERSION = "1.8.2"
+DEPOT = "https://github.com/larataxidancer/utilidades"
+API_VERSIONS = "https://api.github.com/repos/larataxidancer/utilidades/releases/latest"
 # Vrai dans le programme installé (Mes outils.exe) : pas de Python sur le PC.
 GELE = bool(getattr(sys, "frozen", False))
 # Le code et les pages (dans le programme installé : son dossier interne).

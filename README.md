@@ -1,6 +1,6 @@
 # Mis herramientas
 
-**[Descargar para Windows (Setup.exe)](https://github.com/rarianaAina/mes-outils/releases/latest/download/Mes-outils-Setup.exe)** · **[Descargar para Linux (AppImage)](https://github.com/rarianaAina/mes-outils/releases/latest/download/Mes-outils-x86_64.AppImage)** · nada más que instalar
+**[Descargar para Windows (Setup.exe)](https://github.com/larataxidancer/utilidades/releases/latest/download/Mes-outils-Setup.exe)** · **[Descargar para Linux (AppImage)](https://github.com/larataxidancer/utilidades/releases/latest/download/Mes-outils-x86_64.AppImage)** · nada más que instalar
 
 **[Guía de uso ilustrada](docs/GUIDE.md)** · **[Illustrated guide (English)](docs/GUIDE.en.md)**
 
@@ -75,14 +75,14 @@ inglés o francés, tema claro, oscuro o rosa, paleta de comandos (Ctrl + K).
 
 ## Instalación
 
-**Lo más sencillo**: descarga **[Mes-outils-Setup.exe](https://github.com/rarianaAina/mes-outils/releases/latest/download/Mes-outils-Setup.exe)** y
+**Lo más sencillo**: descarga **[Mes-outils-Setup.exe](https://github.com/larataxidancer/utilidades/releases/latest/download/Mes-outils-Setup.exe)** y
 lánzalo. Python y todo lo necesario vienen incluidos, sin permisos de
 administrador. Windows puede mostrar «Windows protegió este equipo» (instalador
 no firmado): **Información adicional › Ejecutar de todos modos**. Tus ajustes y
 datos estarán en `%APPDATA%\Mis herramientas`.
 
 **Linux** (Ubuntu 24.04 y otros): descarga
-**[Mes-outils-x86_64.AppImage](https://github.com/rarianaAina/mes-outils/releases/latest/download/Mes-outils-x86_64.AppImage)**, hazlo ejecutable (`chmod +x`) y luego
+**[Mes-outils-x86_64.AppImage](https://github.com/larataxidancer/utilidades/releases/latest/download/Mes-outils-x86_64.AppImage)**, hazlo ejecutable (`chmod +x`) y luego
 doble clic. Los datos estarán en `~/.config/mes-outils`, los secretos en el
 cajón de claves del escritorio. Se recomienda Google Chrome o Chromium (ventana
 sin barra de direcciones, PDF de facturas).
@@ -90,8 +90,8 @@ sin barra de direcciones, PDF de facturas).
 **Desde el código fuente** (para contribuir): Python 3.10+ con tkinter, luego:
 
 ```bat
-git clone https://github.com/rarianaAina/mes-outils.git
-cd mes-outils
+git clone https://github.com/larataxidancer/utilidades.git
+cd utilidades
 installer.bat
 ```
 
